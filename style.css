@@ -1,3 +1,6 @@
 h1, h2 {
   font-family: Lato;
 }
+
+#container2 { position: relative; background:orange }
+#canvas2 { border: 1px solid #000; }
