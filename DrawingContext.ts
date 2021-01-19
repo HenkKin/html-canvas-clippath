@@ -33,9 +33,17 @@ export class DrawingContext {
     this.renderer = canvas.getContext("2d");
   }
 
-  init() {
-    this.renderer.fillStyle = "silver";
-    this.renderer.fillRect(0, 0, this.canvas.width, this.canvas.height);
+  init(background: HTMLImageElement) {
+    //this.renderer.fillStyle = "silver";
+    // this.renderer.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    // this.renderer.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.renderer.drawImage(
+      background,
+      0,
+      0,
+      this.canvas.width,
+      this.canvas.height
+    );
     this.ghostCanvas = document.createElement("canvas");
     this.ghostCanvas.height = this.canvas.height;
     this.ghostCanvas.width = this.canvas.width;
@@ -130,7 +138,7 @@ export class DrawingContext {
     var l = this.shapes.length;
     for (var i = l - 1; i >= 0; i--) {
       // draw shape onto ghost context
-      this.shapes[i].draw(this.ghostRenderer, this, true);
+      this.shapes[i].drawShape(this.ghostRenderer, this, true);
 
       // get image data at the mouse x,y pixel
       var imageData = this.ghostRenderer.getImageData(
@@ -190,11 +198,7 @@ export class DrawingContext {
 
   //Initialize a new Box, add it, and invalidate the canvas
   addRect(x, y, w, h, fill) {
-    var rect = new RectangleShape();
-    rect.x = x;
-    rect.y = y;
-    rect.w = w;
-    rect.h = h;
+    var rect = new RectangleShape(x, y, w, h);
     rect.fill = fill;
     this.shapes.push(rect);
     this.activeShape = rect;
@@ -271,13 +275,13 @@ export class DrawingContext {
       var current: Shape = null;
       for (var i = 0; i < l; i++) {
         if (this.activeShape !== this.shapes[i]) {
-          this.shapes[i].draw(this.renderer, this, false); // we used to call drawshape, but now each box draws itself
+          this.shapes[i].drawShape(this.renderer, this, false); // we used to call drawshape, but now each box draws itself
         } else {
           current = this.shapes[i];
         }
       }
       if (current !== null) {
-        current.draw(this.renderer, this, false); // we used to call drawshape, but now each box draws itself
+        current.drawShape(this.renderer, this, false); // we used to call drawshape, but now each box draws itself
       }
       // Add stuff you want drawn on top all the time here
 
