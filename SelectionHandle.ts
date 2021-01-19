@@ -5,5 +5,8 @@ export class SelectionHandle {
   public h = 1;
   fill = "#444444";
 
-  constructor() {}
+  constructor(x: number, y: number) {
+    this.x = x;
+    this.y = y;
+  }
 }

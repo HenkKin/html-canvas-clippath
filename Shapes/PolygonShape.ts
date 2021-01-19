@@ -3,21 +3,20 @@ import { Point } from "../Point";
 import { SelectionHandle } from "../SelectionHandle";
 import { Shape } from "../Shapes/Shape";
 
-export class RectangleShape extends Shape {
-  w = 1; // default width and height?
-  h = 1;
+export class PolygonShape extends Shape {
   fill = "#444444";
   mySelColor = "#CC0000";
   mySelWidth = 2;
   mySelBoxColor = "darkred"; // New for selection boxes
   mySelBoxSize = 12;
+  selectionHandles: SelectionHandle[] = [];
 
   constructor() {
     super();
-    for (var i = 0; i < 8; i++) {
-      var rect = new SelectionHandle(0, 0);
-      this.selectionHandles.push(rect);
-    }
+    // for (var i = 0; i < 8; i++) {
+    //   var rect = new SelectionHandle();
+    //   this.selectionHandles.push(rect);
+    // }
   }
 
   draw(
@@ -48,66 +47,51 @@ export class RectangleShape extends Shape {
     // if (this.x > WIDTH || this.y > HEIGHT) return;
     //if (this.x + this.w < 0 || this.y + this.h < 0) return;
 
-    if (isGhostContext === true) {
-      renderer.fillRect(this.x, this.y, this.w, this.h);
-    } else {
-      renderer.clearRect(this.x, this.y, this.w, this.h);
+    // if (isGhostContext === true) {
+    //   renderer.fillRect(this.x, this.y, this.w, this.h);
+    // } else {
+    //   renderer.clearRect(this.x, this.y, this.w, this.h);
+    // }
+
+    renderer.strokeStyle = "black";
+    renderer.lineWidth = 2;
+    renderer.beginPath();
+
+    renderer.moveTo(this.selectionHandles[0].x, this.selectionHandles[0].y);
+
+    for (const selectionHandle of this.selectionHandles.slice(1)) {
+      renderer.lineTo(selectionHandle.x, selectionHandle.y);
     }
+    renderer.closePath();
+    if (isGhostContext === true) {
+      renderer.fillStyle = "black";
+    } else {
+    }
+    renderer.fill();
+    renderer.stroke();
 
     renderer.strokeStyle = this.mySelColor;
     renderer.lineWidth = this.mySelWidth;
-    renderer.strokeRect(this.x, this.y, this.w, this.h);
+    // renderer.strokeRect(this.x, this.y, this.w, this.h);
     // draw selection
     // this is a stroke along the box and also 8 new selection handles
     if (context.activeShape === this) {
       renderer.strokeStyle = this.mySelColor;
       renderer.lineWidth = this.mySelWidth;
-      renderer.strokeRect(this.x, this.y, this.w, this.h);
+      // renderer.strokeRect(this.x, this.y, this.w, this.h);
 
       // draw the boxes
       var half = this.mySelBoxSize / 2;
 
-      // 0  1  2
-      // 3     4
-      // 5  6  7
-
-      // top left, middle, right
-      this.selectionHandles[0].x = this.x - half;
-      this.selectionHandles[0].y = this.y - half;
-
-      this.selectionHandles[1].x = this.x + this.w / 2 - half;
-      this.selectionHandles[1].y = this.y - half;
-
-      this.selectionHandles[2].x = this.x + this.w - half;
-      this.selectionHandles[2].y = this.y - half;
-
-      //middle left
-      this.selectionHandles[3].x = this.x - half;
-      this.selectionHandles[3].y = this.y + this.h / 2 - half;
-
-      //middle right
-      this.selectionHandles[4].x = this.x + this.w - half;
-      this.selectionHandles[4].y = this.y + this.h / 2 - half;
-
-      //bottom left, middle, right
-      this.selectionHandles[6].x = this.x + this.w / 2 - half;
-      this.selectionHandles[6].y = this.y + this.h - half;
-
-      this.selectionHandles[5].x = this.x - half;
-      this.selectionHandles[5].y = this.y + this.h - half;
-
-      this.selectionHandles[7].x = this.x + this.w - half;
-      this.selectionHandles[7].y = this.y + this.h - half;
-
       renderer.fillStyle = this.mySelBoxColor;
 
-      for (var i = 0; i < 8; i++) {
+      for (var i = 0; i < this.selectionHandles.length; i++) {
         var cur = this.selectionHandles[i];
 
         renderer.beginPath();
         renderer.arc(
-          cur.x + this.mySelBoxSize / 2,
-          cur.y + this.mySelBoxSize / 2,
+          cur.x, // + this.mySelBoxSize,
+          cur.y, // + this.mySelBoxSize / 2,
           this.mySelBoxSize / 2,
           0,
           2 * Math.PI,
@@ -124,7 +108,7 @@ export class RectangleShape extends Shape {
 
   getSelectionHandle(mousePoint: Point, context: DrawingContext): number {
     let expectResize = -1;
-    for (var i = 0; i < 8; i++) {
+    for (var i = 0; i < this.selectionHandles.length; i++) {
       // 0  1  2
       // 3     4
       // 5  6  7
@@ -180,45 +164,49 @@ export class RectangleShape extends Shape {
     var oldx = this.x;
     var oldy = this.y;
 
+    if (expectResize >= 0 && this.selectionHandles[expectResize]) {
+      this.selectionHandles[expectResize].x = mousePoint.x;
+      this.selectionHandles[expectResize].y = mousePoint.y;
+    }
     // 0  1  2
     // 3     4
     // 5  6  7
-    switch (expectResize) {
-      case 0:
-        this.x = mousePoint.x;
-        this.y = mousePoint.y;
-        this.w += oldx - mousePoint.x;
-        this.h += oldy - mousePoint.y;
-        break;
-      case 1:
-        this.y = mousePoint.y;
-        this.h += oldy - mousePoint.y;
-        break;
-      case 2:
-        this.y = mousePoint.y;
-        this.w = mousePoint.x - oldx;
-        this.h += oldy - mousePoint.y;
-        break;
-      case 3:
-        this.x = mousePoint.x;
-        this.w += oldx - mousePoint.x;
-        break;
-      case 4:
-        this.w = mousePoint.x - oldx;
-        break;
-      case 5:
-        this.x = mousePoint.x;
-        this.w += oldx - mousePoint.x;
-        this.h = mousePoint.y - oldy;
-        break;
-      case 6:
-        this.h = mousePoint.y - oldy;
-        break;
-      case 7:
-        this.w = mousePoint.x - oldx;
-        this.h = mousePoint.y - oldy;
-        break;
-    }
+    // switch (expectResize) {
+    //   case 0:
+    //     this.x = mousePoint.x;
+    //     this.y = mousePoint.y;
+    //     this.w += oldx - mousePoint.x;
+    //     this.h += oldy - mousePoint.y;
+    //     break;
+    //   case 1:
+    //     this.y = mousePoint.y;
+    //     this.h += oldy - mousePoint.y;
+    //     break;
+    //   case 2:
+    //     this.y = mousePoint.y;
+    //     this.w = mousePoint.x - oldx;
+    //     this.h += oldy - mousePoint.y;
+    //     break;
+    //   case 3:
+    //     this.x = mousePoint.x;
+    //     this.w += oldx - mousePoint.x;
+    //     break;
+    //   case 4:
+    //     this.w = mousePoint.x - oldx;
+    //     break;
+    //   case 5:
+    //     this.x = mousePoint.x;
+    //     this.w += oldx - mousePoint.x;
+    //     this.h = mousePoint.y - oldy;
+    //     break;
+    //   case 6:
+    //     this.h = mousePoint.y - oldy;
+    //     break;
+    //   case 7:
+    //     this.w = mousePoint.x - oldx;
+    //     this.h = mousePoint.y - oldy;
+    //     break;
+    // }
 
     // const bounds = context.canvas.getBoundingClientRect();
     // if (this.x < bounds.left) {
@@ -236,7 +224,17 @@ export class RectangleShape extends Shape {
   }
 
   moveTo(x: number, y: number, context: DrawingContext): void {
-    this.x = x;
-    this.y = y;
+    if (this.selectionHandles.length > 0) {
+      const moveX = x - this.selectionHandles[0].x;
+      const moveY = y - this.selectionHandles[0].y;
+
+      for (const selectionHandle of this.selectionHandles.slice(1)) {
+        selectionHandle.x += moveX;
+        selectionHandle.y += moveY;
+      }
+
+      this.x = this.selectionHandles[0].x;
+      this.y = this.selectionHandles[0].y;
+    }
   }
 }

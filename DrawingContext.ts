@@ -1,5 +1,7 @@
 import { DrawingConfig } from "./DrawingConfig";
 import { Point } from "./Point";
+import { SelectionHandle } from "./SelectionHandle";
+import { PolygonShape } from "./Shapes/PolygonShape";
 import { RectangleShape } from "./Shapes/RectangleShape";
 import { Shape } from "./Shapes/Shape";
 
@@ -103,14 +105,16 @@ export class DrawingContext {
 
     // add custom initialization here:
 
-    // // add a large green rectangle
-    // addRect(260, 70, 60, 65, 'rgba(0,205,0,0.7)');
+    // add a large green rectangle
+    this.addRect(260, 70, 60, 65, "rgba(0,205,0,0.7)");
 
-    // // add a green-blue rectangle
-    // addRect(240, 120, 40, 40, 'rgba(2,165,165,0.7)');
+    // add a green-blue rectangle
+    this.addRect(240, 120, 40, 40, "rgba(2,165,165,0.7)");
 
-    // // add a smaller purple rectangle
-    // addRect(45, 60, 25, 25, 'rgba(150,150,250,0.7)');
+    // add a smaller purple rectangle
+    this.addRect(45, 60, 25, 25, "rgba(150,150,250,0.7)");
+
+    this.addPolygonShape("rgba(150,150,250,0.7)");
   }
   // Happens when the mouse is clicked in the canvas
   myDown(e: MouseEvent) {
@@ -142,11 +146,13 @@ export class DrawingContext {
         this.activeShape = this.shapes[i];
         this.mousePointOffsetX = this.mousePoint.x - this.activeShape.x;
         this.mousePointOffsetY = this.mousePoint.y - this.activeShape.y;
-        this.activeShape.setPosition(
+        this.activeShape.moveTo(
           this.mousePoint.x - this.mousePointOffsetX,
-          this.mousePoint.y - this.mousePointOffsetY
+          this.mousePoint.y - this.mousePointOffsetY,
+          this
         );
         this.isDrag = true;
+        this.canvas.style.cursor = "move";
 
         this.invalidate();
         this.clear(this.ghostRenderer, true);
@@ -174,6 +180,7 @@ export class DrawingContext {
     this.isDrag = false;
     this.isResizeDrag = false;
     this.expectResize = -1;
+    this.canvas.style.cursor = "auto";
   }
 
   invalidate() {
@@ -191,6 +198,17 @@ export class DrawingContext {
     rect.fill = fill;
     this.shapes.push(rect);
     this.activeShape = rect;
+    this.invalidate();
+  }
+
+  addPolygonShape(fill) {
+    var polygon = new PolygonShape();
+    polygon.selectionHandles.push(new SelectionHandle(10, 10));
+    polygon.selectionHandles.push(new SelectionHandle(150, 30));
+    polygon.selectionHandles.push(new SelectionHandle(75, 150));
+    polygon.fill = fill;
+    this.shapes.push(polygon);
+    this.activeShape = polygon;
     this.invalidate();
   }
 
@@ -272,10 +290,12 @@ export class DrawingContext {
     //console.log(this.isDrag, this.isResizeDrag, this.activeShape);
     if (this.isDrag) {
       this.getMouse(e);
+      this.canvas.style.cursor = "move";
 
-      this.activeShape.setPosition(
+      this.activeShape.moveTo(
         this.mousePoint.x - this.mousePointOffsetX,
-        this.mousePoint.y - this.mousePointOffsetY
+        this.mousePoint.y - this.mousePointOffsetY,
+        this
       );
 
       // TODO: Add Check to Shape to check canvas bound per shape
@@ -308,7 +328,11 @@ export class DrawingContext {
         // not over a selection box, return to normal
         this.isResizeDrag = false;
         this.expectResize = -1;
-        this.canvas.style.cursor = "auto";
+        this.canvas.style.cursor = this.isDrag ? "move" : "auto";
+      }
+    } else {
+      if (!this.isResizeDrag) {
+        this.canvas.style.cursor = this.isDrag ? "move" : "auto";
       }
     }
   }
