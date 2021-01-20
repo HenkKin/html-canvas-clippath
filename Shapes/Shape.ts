@@ -41,15 +41,15 @@ export abstract class Shape {
     }
     // renderer.save();
     this.draw(renderer, context, isGhostContext);
-    
+
     // renderer.restore();
     if (context.activeShape === this) {
       // draw the boxes
       // renderer.restore();
-    //   renderer.save();
-    //    renderer.translate(this.centerX, this.centerY); // translate to rectangle center
-    // renderer.rotate((Math.PI / 180) * 45); // rotate
-    // renderer.translate(-1 * this.centerX, -1 * this.centerY); // translate back
+      //   renderer.save();
+      //    renderer.translate(this.centerX, this.centerY); // translate to rectangle center
+      // renderer.rotate((Math.PI / 180) * 45); // rotate
+      // renderer.translate(-1 * this.centerX, -1 * this.centerY); // translate back
 
       renderer.fillStyle = this.mySelBoxColor;
 
