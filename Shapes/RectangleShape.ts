@@ -1,21 +1,22 @@
-import { DrawingContext } from "../DrawingContext";
-import { SelectionHandle } from "../SelectionHandle";
-import { Shape } from "../Shapes/Shape";
+import { DrawingContext } from '../DrawingContext';
+import { SelectionHandle } from '../SelectionHandle';
+import { Shape } from '../Shapes/Shape';
 
 export class RectangleShape extends Shape {
   static TopLeft = 0;
   static Top = 1;
   static TopRight = 2;
   static Right = 3;
-  static BottomRight = 4; 
+  static BottomRight = 4;
   static Bottom = 5;
   static BottomLeft = 6;
-  static Left = 7; 
+  static Left = 7;
   static Rotate = 8;
-  
-  mousedown(x: number, y: number, context: DrawingContext): void {}
-  mouseup(x: number, y: number, context: DrawingContext): void {}
-  mousemove(x: number, y: number, context: DrawingContext): void {}
+  w = 1; // default width and height?
+  h = 1;
+  mousedown(x: number, y: number, context: DrawingContext): void { }
+  mouseup(x: number, y: number, context: DrawingContext): void { }
+  mousemove(x: number, y: number, context: DrawingContext): void { }
   public get x(): number {
     return this.selectionHandles.length > 0 ? this.selectionHandles[RectangleShape.TopLeft].x : 0;
   }
@@ -24,40 +25,63 @@ export class RectangleShape extends Shape {
   }
 
   public get centerX(): number {
-    return this.x + this.w /2;
+    return this.x + this.w / 2;
   }
   public get centerY(): number {
-    return this.y + this.h /2;
+    return this.y + this.h / 2;
   }
 
-  public set x(x: number) { 
+  public set x(x: number) {
     if (this.selectionHandles.length > 0) {
       this.selectionHandles[RectangleShape.TopLeft].x = x;
-      //this.adjustSelectionHandles();
+      // this.adjustSelectionHandles();
     }
   }
   public set y(y: number) {
     if (this.selectionHandles.length > 0) {
       this.selectionHandles[RectangleShape.TopLeft].y = y;
-      //this.adjustSelectionHandles();
+      // this.adjustSelectionHandles();
     }
   }
-  w = 1; // default width and height? 
-  h = 1;
+
+  getSelectionHandleX(selectionHandleIndex: number): number {
+    if (this.selectionHandles.length > 0) {
+      return this.selectionHandles[selectionHandleIndex].x;
+    }
+
+    return 0;
+  }
+
+  getSelectionHandleY(selectionHandleIndex: number): number {
+    if (this.selectionHandles.length > 0) {
+      return this.selectionHandles[selectionHandleIndex].y;
+    }
+    return 0;
+  }
+
   // fill = "#444444";
 
   constructor(x: number, y: number, w?: number, h?: number) {
     super();
 
-    for (var i = 0; i < 9; i++) {
+    for (let i = 0; i < 8; i++) {
       // 8 selection handles + 1 rotation handle
-      var rect = new SelectionHandle(0, 0);
+      const rect = new SelectionHandle(0, 0);
       this.selectionHandles.push(rect);
     }
     this.x = x;
     this.y = y;
     this.w = w ?? 0;
     this.h = h ?? 0;
+    this.adjustSelectionHandles();
+  }
+
+  setClipPath(clipPath: string, context: DrawingContext) {
+    super.setClipPath(clipPath, context);
+
+    this.w = this.getSelectionHandleX(RectangleShape.TopRight) - this.x;
+    this.h = this.getSelectionHandleY(RectangleShape.BottomLeft) - this.y;
+
     this.adjustSelectionHandles();
   }
 
@@ -75,7 +99,7 @@ export class RectangleShape extends Shape {
     renderer.moveTo(this.selectionHandles[0].x, this.selectionHandles[0].y);
 
     for (const selectionHandle of this.selectionHandles.slice(1)) {
-      if(selectionHandle !== this.selectionHandles[RectangleShape.Rotate]){
+      if (selectionHandle !== this.selectionHandles[RectangleShape.Rotate]) {
         renderer.lineTo(selectionHandle.x, selectionHandle.y);
       }
     }
@@ -105,7 +129,7 @@ export class RectangleShape extends Shape {
     // } else {
     //   renderer.clearRect(this.x, this.y, this.w, this.h);
     // }
- 
+
     // // restore transparancy to normal
     // renderer.restore();
     // renderer.strokeStyle =
@@ -114,16 +138,16 @@ export class RectangleShape extends Shape {
     // renderer.strokeRect(this.x, this.y, this.w, this.h);
     // // draw selection
     // // this is a stroke along the box and also 8 new selection handles
-  } // end draw 
+  } // end draw
 
   getSelectionHandle(x: number, y: number, context: DrawingContext): number {
     let expectResize = -1;
-    for (var i = 0; i < 9; i++) {
+    for (let i = 0; i < 8; i++) {
       // 0  1  2
       // 3     4
       // 5  6  7
       // console.log(i);
-      var cur = this.selectionHandles[i];
+      const cur = this.selectionHandles[i];
 
       // we dont need to use the ghost context because
       // selection handles will always be rectangles
@@ -145,13 +169,13 @@ export class RectangleShape extends Shape {
               (this.selectionHandles[RectangleShape.TopLeft].x > this.selectionHandles[RectangleShape.TopRight].x &&
                 this.selectionHandles[RectangleShape.TopLeft].y > this.selectionHandles[RectangleShape.BottomLeft].y)
             ) {
-              context.canvas.style.cursor = "nw-resize";
+              context.canvas.style.cursor = 'nw-resize';
             } else {
-              context.canvas.style.cursor = "ne-resize";
+              context.canvas.style.cursor = 'ne-resize';
             }
             break;
           case RectangleShape.Top:
-            context.canvas.style.cursor = "n-resize";
+            context.canvas.style.cursor = 'n-resize';
             break;
           case RectangleShape.TopRight:
             if (
@@ -160,16 +184,16 @@ export class RectangleShape extends Shape {
               (this.selectionHandles[RectangleShape.TopRight].x > this.selectionHandles[RectangleShape.TopLeft].x &&
                 this.selectionHandles[RectangleShape.TopRight].y > this.selectionHandles[RectangleShape.BottomRight].y)
             ) {
-              context.canvas.style.cursor = "nw-resize";
+              context.canvas.style.cursor = 'nw-resize';
             } else {
-              context.canvas.style.cursor = "ne-resize";
+              context.canvas.style.cursor = 'ne-resize';
             }
             break;
           case RectangleShape.Left:
-            context.canvas.style.cursor = "w-resize";
+            context.canvas.style.cursor = 'w-resize';
             break;
           case RectangleShape.Right:
-            context.canvas.style.cursor = "e-resize";
+            context.canvas.style.cursor = 'e-resize';
             break;
           case RectangleShape.BottomLeft:
             if (
@@ -178,13 +202,13 @@ export class RectangleShape extends Shape {
               (this.selectionHandles[RectangleShape.BottomLeft].x > this.selectionHandles[RectangleShape.BottomRight].x &&
                 this.selectionHandles[RectangleShape.BottomLeft].y <= this.selectionHandles[RectangleShape.TopLeft].y)
             ) {
-              context.canvas.style.cursor = "sw-resize";
+              context.canvas.style.cursor = 'sw-resize';
             } else {
-              context.canvas.style.cursor = "se-resize";
+              context.canvas.style.cursor = 'se-resize';
             }
             break;
           case RectangleShape.Bottom:
-            context.canvas.style.cursor = "s-resize";
+            context.canvas.style.cursor = 's-resize';
             break;
           case RectangleShape.BottomRight:
             if (
@@ -193,14 +217,14 @@ export class RectangleShape extends Shape {
               (this.selectionHandles[RectangleShape.BottomRight].x > this.selectionHandles[RectangleShape.BottomLeft].x &&
                 this.selectionHandles[RectangleShape.BottomRight].y <= this.selectionHandles[RectangleShape.TopRight].y)
             ) {
-              context.canvas.style.cursor = "sw-resize";
+              context.canvas.style.cursor = 'sw-resize';
             } else {
-              context.canvas.style.cursor = "se-resize";
+              context.canvas.style.cursor = 'se-resize';
             }
             break;
-            case RectangleShape.Rotate:
-              context.canvas.style.cursor = "w-resize";
-            break;
+          // case RectangleShape.Rotate:
+          //   context.canvas.style.cursor = 'w-resize';
+          //   break;
         }
       }
     }
@@ -208,10 +232,10 @@ export class RectangleShape extends Shape {
     return expectResize;
   }
 
-  resize(x: number, y: number,expectResize: number, context: DrawingContext) {
+  resize(x: number, y: number, expectResize: number, context: DrawingContext) {
     // time ro resize!
-    var oldx = this.x;
-    var oldy = this.y;
+    const oldx = this.x;
+    const oldy = this.y;
 
     // 0  1  2
     // 3     4
@@ -250,9 +274,9 @@ export class RectangleShape extends Shape {
       case RectangleShape.BottomRight:
         this.w = x - oldx;
         this.h = y - oldy;
-        break;        
+        break;
       case 8:
-        // set rotation 
+        // set rotation
         // this.h = y - oldy;
         break;
     }
@@ -339,15 +363,15 @@ export class RectangleShape extends Shape {
     this.selectionHandles[RectangleShape.TopRight].x = this.x + this.w;
     this.selectionHandles[RectangleShape.TopRight].y = this.y;
 
-    //middle left
+    // middle left
     this.selectionHandles[RectangleShape.Left].x = this.x;
     this.selectionHandles[RectangleShape.Left].y = this.y + this.h / 2;
 
-    //middle right
+    // middle right
     this.selectionHandles[RectangleShape.Right].x = this.x + this.w;
     this.selectionHandles[RectangleShape.Right].y = this.y + this.h / 2;
 
-    //bottom left, middle, right
+    // bottom left, middle, right
     this.selectionHandles[RectangleShape.BottomLeft].x = this.x;
     this.selectionHandles[RectangleShape.BottomLeft].y = this.y + this.h;
 
@@ -357,8 +381,8 @@ export class RectangleShape extends Shape {
     this.selectionHandles[RectangleShape.BottomRight].x = this.x + this.w;
     this.selectionHandles[RectangleShape.BottomRight].y = this.y + this.h;
 
-    this.selectionHandles[RectangleShape.Rotate].x = this.x + this.w / 2;
-    this.selectionHandles[RectangleShape.Rotate].y = this.y + this.h + 25;
+    // this.selectionHandles[RectangleShape.Rotate].x = this.x + this.w / 2;
+    // this.selectionHandles[RectangleShape.Rotate].y = this.y + this.h + 25;
   }
 
   moveTo(x: number, y: number, context: DrawingContext): void {

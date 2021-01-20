@@ -45,7 +45,7 @@ export class DrawingContext {
     this.canvas.style.backgroundImage = "url(" + background.src + ")";
     this.canvas.height = this.background.height;
     this.canvas.width = this.background.width;
-    //this.renderer.fillStyle = "silver";
+    // this.renderer.fillStyle = "silver";
     // this.renderer.fillRect(0, 0, this.canvas.width, this.canvas.height);
     // this.renderer.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.ghostCanvas = document.createElement("canvas");
@@ -53,7 +53,7 @@ export class DrawingContext {
     this.ghostCanvas.width = this.canvas.width;
     this.ghostRenderer = this.ghostCanvas.getContext("2d");
 
-    //fixes a problem where double clicking causes text to get selected on the canvas
+    // fixes a problem where double clicking causes text to get selected on the canvas
     this.canvas.onselectstart = function() {
       return false;
     };
@@ -119,16 +119,16 @@ export class DrawingContext {
 
     // add custom initialization here:
 
-    // add a large green rectangle
-    this.addRect(260, 70, 60, 65, "rgba(0,205,0,0.7)");
+    // // add a large green rectangle
+    // this.addRect(260, 70, 60, 65, 'rgba(0,205,0,0.7)');
 
-    // add a green-blue rectangle
-    this.addRect(240, 120, 40, 40, "rgba(2,165,165,0.7)");
+    // // add a green-blue rectangle
+    // this.addRect(240, 120, 40, 40, 'rgba(2,165,165,0.7)');
 
-    // add a smaller purple rectangle
-    this.addRect(45, 60, 25, 25, "rgba(150,150,250,0.7)");
+    // // add a smaller purple rectangle
+    // this.addRect(45, 60, 25, 25, 'rgba(150,150,250,0.7)');
 
-    this.addPolygonShape("rgba(150,150,250,0.7)");
+    // this.addPolygonShape('rgba(150,150,250,0.7)');
   }
   // Happens when the mouse is clicked in the canvas
   myDown(e: MouseEvent) {
@@ -147,7 +147,7 @@ export class DrawingContext {
       return;
     }
 
-    //we are over a selection box
+    // we are over a selection box
     if (this.expectResize !== -1) {
       this.isResizeDrag = true;
       return;
@@ -164,19 +164,19 @@ export class DrawingContext {
       shapesToDraw.push(this.activeShape);
     }
 
-    for (var i = shapesToDraw.length - 1; i >= 0; i--) {
+    for (let i = shapesToDraw.length - 1; i >= 0; i--) {
       // draw shape onto ghost context
       shapesToDraw[i].drawShape(this.ghostRenderer, this, true);
 
       // get image data at the mouse x,y pixel
-      var imageData = this.ghostRenderer.getImageData(
+      const imageData = this.ghostRenderer.getImageData(
         this.mousePoint.x,
         this.mousePoint.y,
         1,
         1
       );
       // var index = (mousePoint.x + mousePoint.y * imageData.width) * 4;
-console.log(imageData.data);
+      // console.log(imageData.data);
       // if the mouse pixel exists, select and break
       if (imageData.data[3] > 0) {
         this.activeShape = shapesToDraw[i];
@@ -201,21 +201,25 @@ console.log(imageData.data);
     }
     // havent returned means we have selected nothing
     this.activeShape = null;
-    const shape = new RectangleShape(this.mousePoint.x, this.mousePoint.y);
-    this.shapes.push(shape);
-    this.activeShape = shape;
-    this.isCreatingShape = true;
-    this.isCreatingShapeX = this.mousePoint.x;
-    this.isCreatingShapeY = this.mousePoint.y;
-    this.expectResize = 7; // right-bottom
-    this.isResizeDrag = true;
-
+    if (
+      this.shapes.length < this.config.maxNumberOfShapes ||
+      this.config.maxNumberOfShapes === Infinity
+    ) {
+      const shape = new RectangleShape(this.mousePoint.x, this.mousePoint.y);
+      this.shapes.push(shape);
+      this.activeShape = shape;
+      this.isCreatingShape = true;
+      this.isCreatingShapeX = this.mousePoint.x;
+      this.isCreatingShapeY = this.mousePoint.y;
+      this.expectResize = RectangleShape.BottomRight; // right-bottom
+      this.isResizeDrag = true;
+    }
     // clear the ghost canvas for next time
     this.clear(this.ghostRenderer, true);
     // invalidate because we might need the selection border to disappear
     this.invalidate();
   }
-  //wipes the canvas context
+  // wipes the canvas context
   clear(c: CanvasRenderingContext2D, isGhostContext: boolean) {
     c.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -248,7 +252,7 @@ console.log(imageData.data);
       c.clearRect(0, 0, this.canvas.width, this.canvas.height);
     } else {
       c.fillStyle = "silver";
-      //const currentGlobalAlpha = c.globalAlpha;
+      // const currentGlobalAlpha = c.globalAlpha;
       c.globalAlpha = 0.5;
       c.fillRect(0, 0, this.canvas.width, this.canvas.height);
       c.globalAlpha = 1;
@@ -279,9 +283,9 @@ console.log(imageData.data);
     // this.mainDraw();
   }
 
-  //Initialize a new Box, add it, and invalidate the canvas
+  // Initialize a new Box, add it, and invalidate the canvas
   addRect(x, y, w, h, fill) {
-    var rect = new RectangleShape(x, y, w, h);
+    const rect = new RectangleShape(x, y, w, h);
     // rect.fill = fill;
     this.shapes.push(rect);
     this.activeShape = rect;
@@ -289,7 +293,7 @@ console.log(imageData.data);
   }
 
   addPolygonShape(fill) {
-    var polygon = new PolygonShape();
+    const polygon = new PolygonShape();
     polygon.selectionHandles.push(new SelectionHandle(10, 10));
     polygon.selectionHandles.push(new SelectionHandle(150, 30));
     polygon.selectionHandles.push(new SelectionHandle(75, 150));
@@ -318,7 +322,7 @@ console.log(imageData.data);
   // Sets mousePoint.x,my to the mouse position relative to the canvas
   // unfortunately this can be tricky, we have to worry about padding and borders
   getMouse(e: MouseEvent): void {
-    var element: any = this.canvas,
+    let element: any = this.canvas,
       offsetX = 0,
       offsetY = 0;
 
@@ -348,7 +352,7 @@ console.log(imageData.data);
   // While draw is called as often as the INTERVAL variable demands,
   // It only ever does something if the canvas gets invalidated by our code
   mainDraw() {
-    if (this.canvasValid == false) {
+    if (this.canvasValid === false) {
       this.clear(this.renderer, false);
       // Add stuff you want drawn in the background all the time here
       // this.renderer.drawImage(
@@ -360,9 +364,9 @@ console.log(imageData.data);
       // );
       this.addTransparancyLayer(this.renderer, false);
       // draw all boxes
-      var l = this.shapes.length;
-      var current: Shape = null;
-      for (var i = 0; i < l; i++) {
+      const l = this.shapes.length;
+      let current: Shape = null;
+      for (let i = 0; i < l; i++) {
         if (this.activeShape !== this.shapes[i]) {
           this.shapes[i].drawShape(this.renderer, this, false); // we used to call drawshape, but now each box draws itself
         } else {
@@ -403,7 +407,7 @@ console.log(imageData.data);
 
   // Happens when the mouse is moving inside the canvas
   myMove(e: MouseEvent) {
-    //console.log(this.isDrag, this.isResizeDrag, this.activeShape);
+    // console.log(this.isDrag, this.isResizeDrag, this.activeShape);
 
     this.getMouse(e);
 
@@ -420,7 +424,7 @@ console.log(imageData.data);
     //   this.invalidate();
     // } else
     if (this.isDrag) {
-      //this.getMouse(e);
+      // this.getMouse(e);
       this.canvas.style.cursor = "move";
 
       this.activeShape.moveTo(
@@ -440,7 +444,7 @@ console.log(imageData.data);
       this.invalidate();
       return;
     } else if (this.isResizeDrag) {
-      //this.getMouse(e);
+      // this.getMouse(e);
 
       this.activeShape.resize(
         this.mousePoint.x,
