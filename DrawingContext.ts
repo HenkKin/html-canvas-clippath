@@ -41,9 +41,8 @@ export class DrawingContext {
   }
 
   init(background: HTMLImageElement) {
-    console.log(background.width, background.height);
     this.background = background;
-    this.canvas.style.backgroundImage = 'url('+background.src+')';
+    this.canvas.style.backgroundImage = "url(" + background.src + ")";
     this.canvas.height = this.background.height;
     this.canvas.width = this.background.width;
     //this.renderer.fillStyle = "silver";
@@ -134,6 +133,19 @@ export class DrawingContext {
   // Happens when the mouse is clicked in the canvas
   myDown(e: MouseEvent) {
     this.getMouse(e);
+    console.log(this.mousePoint);
+    // const bounds = this.canvas.getBoundingClientRect();
+    // console.log(bounds);
+    if (
+      this.mousePoint.x < 0 ||
+      this.mousePoint.x > this.canvas.width ||
+      this.mousePoint.y < 0 ||
+      this.mousePoint.y > this.canvas.height
+    ) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
 
     //we are over a selection box
     if (this.expectResize !== -1) {
@@ -270,7 +282,7 @@ export class DrawingContext {
   //Initialize a new Box, add it, and invalidate the canvas
   addRect(x, y, w, h, fill) {
     var rect = new RectangleShape(x, y, w, h);
-    rect.fill = fill;
+    // rect.fill = fill;
     this.shapes.push(rect);
     this.activeShape = rect;
     this.invalidate();
@@ -281,7 +293,7 @@ export class DrawingContext {
     polygon.selectionHandles.push(new SelectionHandle(10, 10));
     polygon.selectionHandles.push(new SelectionHandle(150, 30));
     polygon.selectionHandles.push(new SelectionHandle(75, 150));
-    polygon.fill = fill;
+    // polygon.fill = fill;
     this.shapes.push(polygon);
     this.activeShape = polygon;
     this.invalidate();
@@ -394,6 +406,8 @@ export class DrawingContext {
     //console.log(this.isDrag, this.isResizeDrag, this.activeShape);
 
     this.getMouse(e);
+
+    // Boundary detection
     // if (this.isCreatingShape) {
     //   //this.getMouse(e);
     //   this.canvas.style.cursor = "move";

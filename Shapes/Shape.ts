@@ -9,7 +9,7 @@ export abstract class Shape {
   mySelColor = "#CC0000";
   mySelWidth = 1;
   mySelBoxColor = "darkred"; // New for selection boxes
-  mySelBoxSize = 1;
+  mySelBoxSize = 18;
 
   public abstract get x(): number;
   public abstract get y(): number;
