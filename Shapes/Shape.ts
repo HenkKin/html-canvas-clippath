@@ -7,7 +7,7 @@ export abstract class Shape {
   // private _y: number;
   selectionHandles: SelectionHandle[] = [];
   mySelColor = "#CC0000";
-  mySelWidth = 2;
+  mySelWidth = 1;
   mySelBoxColor = "darkred"; // New for selection boxes
   mySelBoxSize = 12;
 
@@ -73,7 +73,7 @@ export abstract class Shape {
   ): void;
 
   abstract resize(
-    mousePoint: Point,
+    x: number, y: number,
     expectResize: number,
     context: DrawingContext
   ): void;
@@ -81,9 +81,15 @@ export abstract class Shape {
   abstract moveTo(x: number, y: number, context: DrawingContext): void;
 
   abstract getSelectionHandle(
-    mousePoint: Point,
+    x: number, y: number,
     context: DrawingContext
   ): number;
+
+  abstract mousedown(x: number, y: number, context: DrawingContext): void;
+
+  abstract mouseup(x: number, y: number, context: DrawingContext): void;
+
+  abstract mousemove(x: number, y: number, context: DrawingContext): void;
 
   // setPosition(x: number, y: number) {
   //   this._x = x;

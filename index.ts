@@ -5,7 +5,7 @@ import "./style.css";
 
 // Write TypeScript code!
 const appDiv: HTMLElement = document.getElementById("app");
-appDiv.innerHTML = `<h1>TypeScript Starter</h1>`;
+appDiv.innerHTML = `<h1>Html Canvas Clip-Path generator</h1>`;
 
 const canvas: HTMLCanvasElement = document.getElementById(
   "canvas2"
@@ -26,7 +26,7 @@ img1.onload = function() {
     for (let i = 0; i < drawingContext.shapes.length; i++) {
       console.log(drawingContext.shapes[i].getClipPath(drawingContext));
     }
-  }, 2000);
+  }, 10000);
 
   console.log("ready");
 };

@@ -17,6 +17,9 @@ export class DrawingContext {
   stylePaddingTop: number;
   styleBorderLeft: number;
   styleBorderTop: number;
+
+  INTERVAL = 20; // how often, in milliseconds, we check to see if a redraw is needed
+
   mousePoint: Point;
 
   mousePointOffsetX: number;
@@ -25,6 +28,9 @@ export class DrawingContext {
   canvasValid = true;
   isDrag = false;
   isResizeDrag = false;
+  isCreatingShape = false;
+  isCreatingShapeX?: number = null;
+  isCreatingShapeY?: number = null;
   expectResize = -1; // New, will save the # of the selection handle if the mouse is over one.
 
   constructor(canvas: HTMLCanvasElement, config: DrawingConfig) {
@@ -88,7 +94,9 @@ export class DrawingContext {
     }
 
     // make mainDraw() fire every INTERVAL milliseconds
-    // setInterval(mainDraw, INTERVAL);
+    setInterval(() => {
+      this.mainDraw();
+    }, this.INTERVAL);
 
     // set our events. Up and down are for dragging,
     // double click is for making new boxes
@@ -102,7 +110,7 @@ export class DrawingContext {
       self.myDown(e);
     });
     document.addEventListener("mouseup", function(e) {
-      self.myUp();
+      self.myUp(e);
     });
     document.addEventListener("dblclick", function(e) {
       self.myDblClick(e);
@@ -114,15 +122,15 @@ export class DrawingContext {
     // add custom initialization here:
 
     // add a large green rectangle
-    this.addRect(260, 70, 60, 65, "rgba(0,205,0,0.7)");
+    // this.addRect(260, 70, 60, 65, "rgba(0,205,0,0.7)");
 
-    // add a green-blue rectangle
-    this.addRect(240, 120, 40, 40, "rgba(2,165,165,0.7)");
+    // // add a green-blue rectangle
+    // this.addRect(240, 120, 40, 40, "rgba(2,165,165,0.7)");
 
-    // add a smaller purple rectangle
-    this.addRect(45, 60, 25, 25, "rgba(150,150,250,0.7)");
+    // // add a smaller purple rectangle
+    // this.addRect(45, 60, 25, 25, "rgba(150,150,250,0.7)");
 
-    this.addPolygonShape("rgba(150,150,250,0.7)");
+    // this.addPolygonShape("rgba(150,150,250,0.7)");
   }
   // Happens when the mouse is clicked in the canvas
   myDown(e: MouseEvent) {
@@ -135,10 +143,19 @@ export class DrawingContext {
     }
 
     this.clear(this.ghostRenderer, true);
-    var l = this.shapes.length;
-    for (var i = l - 1; i >= 0; i--) {
+    // var l = this.shapes.length;
+
+    // use activeShape first, so the whole surface is selectable
+    const shapesToDraw: Array<Shape> = this.shapes.filter(
+      s => s !== this.activeShape
+    );
+    if (this.activeShape !== null) {
+      shapesToDraw.push(this.activeShape);
+    }
+
+    for (var i = shapesToDraw.length - 1; i >= 0; i--) {
       // draw shape onto ghost context
-      this.shapes[i].drawShape(this.ghostRenderer, this, true);
+      shapesToDraw[i].drawShape(this.ghostRenderer, this, true);
 
       // get image data at the mouse x,y pixel
       var imageData = this.ghostRenderer.getImageData(
@@ -151,17 +168,21 @@ export class DrawingContext {
 
       // if the mouse pixel exists, select and break
       if (imageData.data[3] > 0) {
-        this.activeShape = this.shapes[i];
-        this.mousePointOffsetX = this.mousePoint.x - this.activeShape.x;
-        this.mousePointOffsetY = this.mousePoint.y - this.activeShape.y;
-        this.activeShape.moveTo(
-          this.mousePoint.x - this.mousePointOffsetX,
-          this.mousePoint.y - this.mousePointOffsetY,
-          this
-        );
-        this.isDrag = true;
-        this.canvas.style.cursor = "move";
-
+        this.activeShape = shapesToDraw[i];
+        if (e.ctrlKey === true) {
+          this.shapes = this.shapes.filter(s => s !== this.activeShape);
+          this.activeShape = null;
+        } else {
+          this.mousePointOffsetX = this.mousePoint.x - this.activeShape.x;
+          this.mousePointOffsetY = this.mousePoint.y - this.activeShape.y;
+          this.activeShape.moveTo(
+            this.mousePoint.x - this.mousePointOffsetX,
+            this.mousePoint.y - this.mousePointOffsetY,
+            this
+          );
+          this.isDrag = true;
+          this.canvas.style.cursor = "move";
+        }
         this.invalidate();
         this.clear(this.ghostRenderer, true);
         return;
@@ -169,6 +190,15 @@ export class DrawingContext {
     }
     // havent returned means we have selected nothing
     this.activeShape = null;
+    const shape = new RectangleShape(this.mousePoint.x, this.mousePoint.y);
+    this.shapes.push(shape);
+    this.activeShape = shape;
+    this.isCreatingShape = true;
+    this.isCreatingShapeX = this.mousePoint.x;
+    this.isCreatingShapeY = this.mousePoint.y;
+    this.expectResize = 7; // right-bottom
+    this.isResizeDrag = true;
+
     // clear the ghost canvas for next time
     this.clear(this.ghostRenderer, true);
     // invalidate because we might need the selection border to disappear
@@ -176,24 +206,66 @@ export class DrawingContext {
   }
   //wipes the canvas context
   clear(c: CanvasRenderingContext2D, isGhostContext: boolean) {
-    if (isGhostContext === true) {
+    c.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+    // if (isGhostContext === true) {
+    //   //c.globalAlpha = 1;
+    //   c.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    // } else {
+    //   if (
+    //     this.shapes.length === 0 ||
+    //     (this.shapes.length === 1 && this.isCreatingShape)
+    //   ) {
+    //     c.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    //   } else {
+    //     // c.fillStyle = "silver";
+    //     // //const currentGlobalAlpha = c.globalAlpha;
+    //     // // c.globalAlpha = 0.5;
+    //     // c.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    //     // c.globalAlpha = 1;
+    //     //c.globalAlpha = currentGlobalAlpha;
+    //     //c.globalAlpha = 1;
+    //   }
+    // }
+  }
+
+  addTransparancyLayer(c: CanvasRenderingContext2D, isGhostContext: boolean) {
+    if (
+      this.shapes.length === 0 ||
+      (this.shapes.length === 1 && this.isCreatingShape)
+    ) {
       c.clearRect(0, 0, this.canvas.width, this.canvas.height);
     } else {
       c.fillStyle = "silver";
+      //const currentGlobalAlpha = c.globalAlpha;
+      c.globalAlpha = 0.5;
       c.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      c.globalAlpha = 1;
     }
-  }
-
-  myUp() {
-    this.isDrag = false;
-    this.isResizeDrag = false;
-    this.expectResize = -1;
-    this.canvas.style.cursor = "auto";
+    // if (isGhostContext === true) {
+    //   //c.globalAlpha = 1;
+    //   c.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    // } else {
+    //   if (
+    //     this.shapes.length === 0 ||
+    //     (this.shapes.length === 1 && this.isCreatingShape)
+    //   ) {
+    //     c.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    //   } else {
+    //     // c.fillStyle = "silver";
+    //     // //const currentGlobalAlpha = c.globalAlpha;
+    //     // // c.globalAlpha = 0.5;
+    //     // c.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    //     // c.globalAlpha = 1;
+    //     //c.globalAlpha = currentGlobalAlpha;
+    //     //c.globalAlpha = 1;
+    //   }
+    // }
   }
 
   invalidate() {
     this.canvasValid = false;
-    this.mainDraw();
+    // this.mainDraw();
   }
 
   //Initialize a new Box, add it, and invalidate the canvas
@@ -218,18 +290,18 @@ export class DrawingContext {
 
   // adds a new node
   myDblClick(e: MouseEvent) {
-    const mousePoint = this.getMouse(e);
-    // for this method width and height determine the starting X and Y, too.
-    // so I left them as vars in case someone wanted to make them args for something and copy this code
-    var width = 20;
-    var height = 20;
-    this.addRect(
-      this.mousePoint.x - width / 2,
-      this.mousePoint.y - height / 2,
-      width,
-      height,
-      "rgba(220,205,65,0.7)"
-    );
+    // const mousePoint = this.getMouse(e);
+    // // for this method width and height determine the starting X and Y, too.
+    // // so I left them as vars in case someone wanted to make them args for something and copy this code
+    // var width = 20;
+    // var height = 20;
+    // this.addRect(
+    //   this.mousePoint.x - width / 2,
+    //   this.mousePoint.y - height / 2,
+    //   width,
+    //   height,
+    //   "rgba(220,205,65,0.7)"
+    // );
   }
 
   // Sets mousePoint.x,my to the mouse position relative to the canvas
@@ -269,6 +341,7 @@ export class DrawingContext {
       this.clear(this.renderer, false);
 
       // Add stuff you want drawn in the background all the time here
+      this.addTransparancyLayer(this.renderer, false);
 
       // draw all boxes
       var l = this.shapes.length;
@@ -289,11 +362,47 @@ export class DrawingContext {
     }
   }
 
+  myUp(e) {
+    this.getMouse(e);
+
+    if (this.isCreatingShape) {
+      this.isCreatingShape = false;
+      const minimumDistance = 10;
+      if (
+        this.mousePoint.x > this.activeShape.x - minimumDistance &&
+        this.mousePoint.x < this.activeShape.x + minimumDistance &&
+        this.mousePoint.y > this.activeShape.y - minimumDistance &&
+        this.mousePoint.y < this.activeShape.y + minimumDistance
+      ) {
+        this.shapes = this.shapes.filter(s => s !== this.activeShape);
+        this.activeShape = null;
+        this.invalidate();
+      }
+    }
+    this.isDrag = false;
+    this.isResizeDrag = false;
+    this.expectResize = -1;
+    this.canvas.style.cursor = "auto";
+  }
+
   // Happens when the mouse is moving inside the canvas
   myMove(e: MouseEvent) {
     //console.log(this.isDrag, this.isResizeDrag, this.activeShape);
+
+    this.getMouse(e);
+    // if (this.isCreatingShape) {
+    //   //this.getMouse(e);
+    //   this.canvas.style.cursor = "move";
+    //   this.activeShape.resize(
+    //     this.mousePoint.x - this.mousePointOffsetX,
+    //     this.mousePoint.y - this.mousePointOffsetY,
+    //     this.expectResize, // right-bottom
+    //     this
+    //   );
+    //   this.invalidate();
+    // } else
     if (this.isDrag) {
-      this.getMouse(e);
+      //this.getMouse(e);
       this.canvas.style.cursor = "move";
 
       this.activeShape.moveTo(
@@ -311,21 +420,26 @@ export class DrawingContext {
 
       // something is changing position so we better invalidate the canvas!
       this.invalidate();
+      return;
     } else if (this.isResizeDrag) {
-      this.getMouse(e);
+      //this.getMouse(e);
 
-      this.activeShape.resize(this.mousePoint, this.expectResize, this);
+      this.activeShape.resize(
+        this.mousePoint.x,
+        this.mousePoint.y,
+        this.expectResize,
+        this
+      );
 
       this.invalidate();
     }
-
-    this.getMouse(e);
 
     // if there's a selection see if we grabbed one of the selection handles
     if (this.activeShape !== null && !this.isResizeDrag) {
       // TODO: retutn SelectionHandle instance
       this.expectResize = this.activeShape.getSelectionHandle(
-        this.mousePoint,
+        this.mousePoint.x,
+        this.mousePoint.y,
         this
       );
       if (this.expectResize === -1) {

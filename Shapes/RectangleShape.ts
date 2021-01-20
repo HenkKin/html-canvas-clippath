@@ -1,9 +1,11 @@
 import { DrawingContext } from "../DrawingContext";
-import { Point } from "../Point";
 import { SelectionHandle } from "../SelectionHandle";
 import { Shape } from "../Shapes/Shape";
 
 export class RectangleShape extends Shape {
+  mousedown(x: number, y: number, context: DrawingContext): void {}
+  mouseup(x: number, y: number, context: DrawingContext): void {}
+  mousemove(x: number, y: number, context: DrawingContext): void {}
   public get x(): number {
     return this.selectionHandles.length > 0 ? this.selectionHandles[0].x : 0;
   }
@@ -22,11 +24,11 @@ export class RectangleShape extends Shape {
       //this.adjustSelectionHandles();
     }
   }
-  w = 1; // default width and height?
+  w = 1; // default width and height? 
   h = 1;
   fill = "#444444";
 
-  constructor(x: number, y: number, w: number, h: number) {
+  constructor(x: number, y: number, w?: number, h?: number) {
     super();
 
     for (var i = 0; i < 8; i++) {
@@ -36,8 +38,8 @@ export class RectangleShape extends Shape {
     }
     this.x = x;
     this.y = y;
-    this.w = w;
-    this.h = h;
+    this.w = w ?? 0;
+    this.h = h ?? 0;
     this.adjustSelectionHandles();
   }
 
@@ -78,7 +80,7 @@ export class RectangleShape extends Shape {
     // this is a stroke along the box and also 8 new selection handles
   } // end draw
 
-  getSelectionHandle(mousePoint: Point, context: DrawingContext): number {
+  getSelectionHandle(x: number, y: number, context: DrawingContext): number {
     let expectResize = -1;
     for (var i = 0; i < 8; i++) {
       // 0  1  2
@@ -90,10 +92,10 @@ export class RectangleShape extends Shape {
       // we dont need to use the ghost context because
       // selection handles will always be rectangles
       if (
-        mousePoint.x >= cur.x - this.mySelBoxSize / 2 &&
-        mousePoint.x <= cur.x + this.mySelBoxSize / 2 &&
-        mousePoint.y >= cur.y - this.mySelBoxSize / 2 &&
-        mousePoint.y <= cur.y + this.mySelBoxSize / 2
+        x >= cur.x - this.mySelBoxSize / 2 &&
+        x <= cur.x + this.mySelBoxSize / 2 &&
+        y >= cur.y - this.mySelBoxSize / 2 &&
+        y <= cur.y + this.mySelBoxSize / 2
       ) {
         // we found one!
         expectResize = i;
@@ -167,7 +169,7 @@ export class RectangleShape extends Shape {
     return expectResize;
   }
 
-  resize(mousePoint: Point, expectResize: number, context: DrawingContext) {
+  resize(x: number, y: number,expectResize: number, context: DrawingContext) {
     // time ro resize!
     var oldx = this.x;
     var oldy = this.y;
@@ -177,38 +179,38 @@ export class RectangleShape extends Shape {
     // 5  6  7
     switch (expectResize) {
       case 0:
-        this.x = mousePoint.x;
-        this.y = mousePoint.y;
-        this.w += oldx - mousePoint.x;
-        this.h += oldy - mousePoint.y;
+        this.x = x;
+        this.y = y;
+        this.w += oldx - x;
+        this.h += oldy - y;
         break;
       case 1:
-        this.y = mousePoint.y;
-        this.h += oldy - mousePoint.y;
+        this.y = y;
+        this.h += oldy - y;
         break;
       case 2:
-        this.y = mousePoint.y;
-        this.w = mousePoint.x - oldx;
-        this.h += oldy - mousePoint.y;
+        this.y = y;
+        this.w = x - oldx;
+        this.h += oldy - y;
         break;
       case 3:
-        this.x = mousePoint.x;
-        this.w += oldx - mousePoint.x;
+        this.x = x;
+        this.w += oldx - x;
         break;
       case 4:
-        this.w = mousePoint.x - oldx;
+        this.w = x - oldx;
         break;
       case 5:
-        this.x = mousePoint.x;
-        this.w += oldx - mousePoint.x;
-        this.h = mousePoint.y - oldy;
+        this.x = x;
+        this.w += oldx - x;
+        this.h = y - oldy;
         break;
       case 6:
-        this.h = mousePoint.y - oldy;
+        this.h = y - oldy;
         break;
       case 7:
-        this.w = mousePoint.x - oldx;
-        this.h = mousePoint.y - oldy;
+        this.w = x - oldx;
+        this.h = y - oldy;
         break;
     }
 

@@ -25,7 +25,9 @@ export class PolygonShape extends Shape {
     //   this.selectionHandles.push(rect);
     // }
   }
-
+  mousedown(x: number, y: number, context: DrawingContext): void {}
+  mouseup(x: number, y: number, context: DrawingContext): void {}
+  mousemove(x: number, y: number, context: DrawingContext): void {}
   draw(
     renderer: CanvasRenderingContext2D,
     context: DrawingContext,
@@ -107,7 +109,7 @@ export class PolygonShape extends Shape {
     }
   } // end draw
 
-  getSelectionHandle(mousePoint: Point, context: DrawingContext): number {
+  getSelectionHandle(x: number, y: number, context: DrawingContext): number {
     let expectResize = -1;
     for (var i = 0; i < this.selectionHandles.length; i++) {
       // 0  1  2
@@ -119,10 +121,10 @@ export class PolygonShape extends Shape {
       // we dont need to use the ghost context because
       // selection handles will always be rectangles
       if (
-        mousePoint.x >= cur.x - this.mySelBoxSize / 2 &&
-        mousePoint.x <= cur.x + this.mySelBoxSize / 2 &&
-        mousePoint.y >= cur.y - this.mySelBoxSize / 2 &&
-        mousePoint.y <= cur.y + this.mySelBoxSize / 2
+        x >= cur.x - this.mySelBoxSize / 2 &&
+        x <= cur.x + this.mySelBoxSize / 2 &&
+        y >= cur.y - this.mySelBoxSize / 2 &&
+        y <= cur.y + this.mySelBoxSize / 2
       ) {
         // we found one!
         expectResize = i;
@@ -134,11 +136,11 @@ export class PolygonShape extends Shape {
     return expectResize;
   }
 
-  resize(mousePoint: Point, expectResize: number, context: DrawingContext) {
+  resize(x: number, y: number, expectResize: number, context: DrawingContext) {
     // time ro resize!
     if (expectResize >= 0 && this.selectionHandles[expectResize]) {
-      this.selectionHandles[expectResize].x = mousePoint.x;
-      this.selectionHandles[expectResize].y = mousePoint.y;
+      this.selectionHandles[expectResize].x = x;
+      this.selectionHandles[expectResize].y = y;
     }
   }
 
