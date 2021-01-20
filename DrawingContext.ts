@@ -32,6 +32,7 @@ export class DrawingContext {
   isCreatingShapeX?: number = null;
   isCreatingShapeY?: number = null;
   expectResize = -1; // New, will save the # of the selection handle if the mouse is over one.
+  background: HTMLImageElement;
 
   constructor(canvas: HTMLCanvasElement, config: DrawingConfig) {
     this.canvas = canvas;
@@ -40,16 +41,14 @@ export class DrawingContext {
   }
 
   init(background: HTMLImageElement) {
+    console.log(background.width, background.height);
+    this.background = background;
+    this.canvas.style.backgroundImage = 'url('+background.src+')';
+    this.canvas.height = this.background.height;
+    this.canvas.width = this.background.width;
     //this.renderer.fillStyle = "silver";
     // this.renderer.fillRect(0, 0, this.canvas.width, this.canvas.height);
     // this.renderer.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    this.renderer.drawImage(
-      background,
-      0,
-      0,
-      this.canvas.width,
-      this.canvas.height
-    );
     this.ghostCanvas = document.createElement("canvas");
     this.ghostCanvas.height = this.canvas.height;
     this.ghostCanvas.width = this.canvas.width;
@@ -122,15 +121,15 @@ export class DrawingContext {
     // add custom initialization here:
 
     // add a large green rectangle
-    // this.addRect(260, 70, 60, 65, "rgba(0,205,0,0.7)");
+    this.addRect(260, 70, 60, 65, "rgba(0,205,0,0.7)");
 
-    // // add a green-blue rectangle
-    // this.addRect(240, 120, 40, 40, "rgba(2,165,165,0.7)");
+    // add a green-blue rectangle
+    this.addRect(240, 120, 40, 40, "rgba(2,165,165,0.7)");
 
-    // // add a smaller purple rectangle
-    // this.addRect(45, 60, 25, 25, "rgba(150,150,250,0.7)");
+    // add a smaller purple rectangle
+    this.addRect(45, 60, 25, 25, "rgba(150,150,250,0.7)");
 
-    // this.addPolygonShape("rgba(150,150,250,0.7)");
+    this.addPolygonShape("rgba(150,150,250,0.7)");
   }
   // Happens when the mouse is clicked in the canvas
   myDown(e: MouseEvent) {
@@ -339,10 +338,15 @@ export class DrawingContext {
   mainDraw() {
     if (this.canvasValid == false) {
       this.clear(this.renderer, false);
-
       // Add stuff you want drawn in the background all the time here
+      // this.renderer.drawImage(
+      //   this.background,
+      //   0,
+      //   0,
+      //   this.canvas.width,
+      //   this.canvas.height
+      // );
       this.addTransparancyLayer(this.renderer, false);
-
       // draw all boxes
       var l = this.shapes.length;
       var current: Shape = null;

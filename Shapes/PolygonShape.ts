@@ -4,12 +4,12 @@ import { SelectionHandle } from "../SelectionHandle";
 import { Shape } from "../Shapes/Shape";
 
 export class PolygonShape extends Shape {
-  fill = "#444444";
-  mySelColor = "#CC0000";
-  mySelWidth = 1;
-  mySelBoxColor = "darkred"; // New for selection boxes
-  mySelBoxSize = 12;
-  selectionHandles: SelectionHandle[] = [];
+  // fill = "#444444";
+  // mySelColor = "#CC0000";
+  // mySelWidth = 1;
+  // mySelBoxColor = "darkred"; // New for selection boxes
+  // mySelBoxSize = 12;
+  // selectionHandles: SelectionHandle[] = [];
 
   get x(): number {
     return this.selectionHandles.length > 0 ? this.selectionHandles[0].x : 0;

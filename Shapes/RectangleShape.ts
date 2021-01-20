@@ -26,7 +26,7 @@ export class RectangleShape extends Shape {
   }
   w = 1; // default width and height? 
   h = 1;
-  fill = "#444444";
+  // fill = "#444444";
 
   constructor(x: number, y: number, w?: number, h?: number) {
     super();
