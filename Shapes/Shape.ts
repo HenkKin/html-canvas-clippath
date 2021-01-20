@@ -10,9 +10,11 @@ export abstract class Shape {
   mySelWidth = 1;
   mySelBoxColor = "darkred"; // New for selection boxes
   mySelBoxSize = 18;
-
+  rotationDegree: 45;
   public abstract get x(): number;
   public abstract get y(): number;
+  public abstract get centerX(): number;
+  public abstract get centerY(): number;
 
   // public set x(x: number) {
   //   this._x = x;
@@ -27,6 +29,9 @@ export abstract class Shape {
     isGhostContext: boolean
   ): void {
     renderer.save();
+    // renderer.translate(this.centerX, this.centerY); // translate to rectangle center
+    // renderer.rotate((Math.PI / 180) * 45); // rotate
+    // renderer.translate(-1 * this.centerX, -1 * this.centerY); // translate back
 
     if (isGhostContext === true) {
       renderer.fillStyle = "black"; // always want black for the ghost canvas
@@ -34,13 +39,18 @@ export abstract class Shape {
       renderer.globalCompositeOperation = "destination-out";
       // context.fillStyle = this.fill;
     }
-
+    // renderer.save();
     this.draw(renderer, context, isGhostContext);
-
+    
+    // renderer.restore();
     if (context.activeShape === this) {
       // draw the boxes
-      renderer.restore();
-      renderer.save();
+      // renderer.restore();
+    //   renderer.save();
+    //    renderer.translate(this.centerX, this.centerY); // translate to rectangle center
+    // renderer.rotate((Math.PI / 180) * 45); // rotate
+    // renderer.translate(-1 * this.centerX, -1 * this.centerY); // translate back
+
       renderer.fillStyle = this.mySelBoxColor;
 
       for (var i = 0; i < this.selectionHandles.length; i++) {
@@ -73,7 +83,8 @@ export abstract class Shape {
   ): void;
 
   abstract resize(
-    x: number, y: number,
+    x: number,
+    y: number,
     expectResize: number,
     context: DrawingContext
   ): void;
@@ -81,7 +92,8 @@ export abstract class Shape {
   abstract moveTo(x: number, y: number, context: DrawingContext): void;
 
   abstract getSelectionHandle(
-    x: number, y: number,
+    x: number,
+    y: number,
     context: DrawingContext
   ): number;
 

@@ -17,7 +17,12 @@ export class PolygonShape extends Shape {
   get y(): number {
     return this.selectionHandles.length > 0 ? this.selectionHandles[0].y : 0;
   }
-
+  public get centerX(): number {
+    return this.x;
+  }
+  public get centerY(): number {
+    return this.y;
+  }
   constructor() {
     super();
     // for (var i = 0; i < 8; i++) {
@@ -73,40 +78,40 @@ export class PolygonShape extends Shape {
     renderer.fill();
     renderer.restore();
     renderer.stroke();
-    renderer.strokeStyle = this.mySelColor;
-    renderer.lineWidth = this.mySelWidth;
+    // renderer.strokeStyle = this.mySelColor;
+    // renderer.lineWidth = this.mySelWidth;
     // renderer.strokeRect(this.x, this.y, this.w, this.h);
     // draw selection
     // this is a stroke along the box and also 8 new selection handles
-    if (context.activeShape === this) {
-      renderer.strokeStyle = this.mySelColor;
-      renderer.lineWidth = this.mySelWidth;
-      // renderer.strokeRect(this.x, this.y, this.w, this.h);
+    // if (context.activeShape === this) {
+    //   renderer.strokeStyle = this.mySelColor;
+    //   renderer.lineWidth = this.mySelWidth;
+    //   // renderer.strokeRect(this.x, this.y, this.w, this.h);
 
-      // // draw the boxes
-      // var half = this.mySelBoxSize / 2;
+    //   // // draw the boxes
+    //   // var half = this.mySelBoxSize / 2;
 
-      // renderer.fillStyle = this.mySelBoxColor;
+    //   // renderer.fillStyle = this.mySelBoxColor;
 
-      // for (var i = 0; i < this.selectionHandles.length; i++) {
-      //   var cur = this.selectionHandles[i];
+    //   // for (var i = 0; i < this.selectionHandles.length; i++) {
+    //   //   var cur = this.selectionHandles[i];
 
-      //   renderer.beginPath();
-      //   renderer.arc(
-      //     cur.x, // + this.mySelBoxSize,
-      //     cur.y, // + this.mySelBoxSize / 2,
-      //     this.mySelBoxSize / 2,
-      //     0,
-      //     2 * Math.PI,
-      //     false
-      //   );
-      //   renderer.fillStyle = "green";
-      //   renderer.fill();
-      //   renderer.lineWidth = 1;
-      //   renderer.strokeStyle = "#003300";
-      //   renderer.stroke();
-      // }
-    }
+    //   //   renderer.beginPath();
+    //   //   renderer.arc(
+    //   //     cur.x, // + this.mySelBoxSize,
+    //   //     cur.y, // + this.mySelBoxSize / 2,
+    //   //     this.mySelBoxSize / 2,
+    //   //     0,
+    //   //     2 * Math.PI,
+    //   //     false
+    //   //   );
+    //   //   renderer.fillStyle = "green";
+    //   //   renderer.fill();
+    //   //   renderer.lineWidth = 1;
+    //   //   renderer.strokeStyle = "#003300";
+    //   //   renderer.stroke();
+    //   // }
+    // }
   } // end draw
 
   getSelectionHandle(x: number, y: number, context: DrawingContext): number {

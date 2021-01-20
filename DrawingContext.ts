@@ -133,7 +133,7 @@ export class DrawingContext {
   // Happens when the mouse is clicked in the canvas
   myDown(e: MouseEvent) {
     this.getMouse(e);
-    console.log(this.mousePoint);
+    // console.log(this.mousePoint);
     // const bounds = this.canvas.getBoundingClientRect();
     // console.log(bounds);
     if (
@@ -176,7 +176,7 @@ export class DrawingContext {
         1
       );
       // var index = (mousePoint.x + mousePoint.y * imageData.width) * 4;
-
+console.log(imageData.data);
       // if the mouse pixel exists, select and break
       if (imageData.data[3] > 0) {
         this.activeShape = shapesToDraw[i];
