@@ -126,6 +126,7 @@ export class DrawingContext {
       self.myMove(e);
     });
     window.onresize = function() {
+      // TODO: tranform shapes to new canvas dimension
       self.canvas.height = self.canvas.parentElement.clientHeight;
       self.canvas.width = self.canvas.height * self.aspectRatio;
       self.invalidate();
