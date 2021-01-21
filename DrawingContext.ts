@@ -27,6 +27,7 @@ export class DrawingContext {
 
   canvasValid = true;
   isDrag = false;
+  isRotate = false;
   isResizeDrag = false;
   isCreatingShape = false;
   isCreatingShapeX?: number = null;
@@ -120,7 +121,7 @@ export class DrawingContext {
     // add custom initialization here:
 
     // // add a large green rectangle
-    // this.addRect(260, 70, 60, 65, 'rgba(0,205,0,0.7)');
+    this.addRect(260, 70, 60, 65, "rgba(0,205,0,0.7)");
 
     // // add a green-blue rectangle
     // this.addRect(240, 120, 40, 40, 'rgba(2,165,165,0.7)');
@@ -149,7 +150,11 @@ export class DrawingContext {
 
     // we are over a selection box
     if (this.expectResize !== -1) {
-      this.isResizeDrag = true;
+      if (this.expectResize === Shape.RotateHandle) {
+        this.isRotate = true;
+      } else {
+        this.isResizeDrag = true;
+      }
       return;
     }
 
@@ -401,6 +406,7 @@ export class DrawingContext {
     }
     this.isDrag = false;
     this.isResizeDrag = false;
+    this.isRotate = false;
     this.expectResize = -1;
     this.canvas.style.cursor = "auto";
   }
@@ -454,10 +460,31 @@ export class DrawingContext {
       );
 
       this.invalidate();
+    } else if (this.isRotate) {
+      // this.getMouse(e);
+
+      var angleFromRotationhandleToCenter = Math.atan2(
+        this.activeShape.selectionHandles[Shape.RotateHandle].y -
+          this.activeShape.centerY,
+        this.activeShape.selectionHandles[Shape.RotateHandle].x -
+          this.activeShape.centerX
+      );
+      var angleFromMouseToCenter = Math.atan2(
+        this.mousePoint.y - this.activeShape.centerY,
+        this.mousePoint.x - this.activeShape.centerX
+      );
+
+      const rotationDegree =
+        ((angleFromMouseToCenter - angleFromRotationhandleToCenter) * 180) /
+        Math.PI;
+      this.activeShape.rotationDegree = rotationDegree;
+      // console.log("Angle", this.activeShape.rotationDegree);
+
+      this.invalidate();
     }
 
     // if there's a selection see if we grabbed one of the selection handles
-    if (this.activeShape !== null && !this.isResizeDrag) {
+    if (this.activeShape !== null && !this.isResizeDrag && !this.isRotate) {
       // TODO: retutn SelectionHandle instance
       this.expectResize = this.activeShape.getSelectionHandle(
         this.mousePoint.x,
@@ -467,6 +494,7 @@ export class DrawingContext {
       if (this.expectResize === -1) {
         // not over a selection box, return to normal
         this.isResizeDrag = false;
+        this.isRotate = false;
         this.expectResize = -1;
         this.canvas.style.cursor = this.isDrag ? "move" : "auto";
       }

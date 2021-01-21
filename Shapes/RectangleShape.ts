@@ -11,7 +11,6 @@ export class RectangleShape extends Shape {
   static Bottom = 5;
   static BottomLeft = 6;
   static Left = 7;
-  static Rotate = 8;
   w = 1; // default width and height?
   h = 1;
   mousedown(x: number, y: number, context: DrawingContext): void { }
@@ -64,7 +63,7 @@ export class RectangleShape extends Shape {
   constructor(x: number, y: number, w?: number, h?: number) {
     super();
 
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 9; i++) {
       // 8 selection handles + 1 rotation handle
       const rect = new SelectionHandle(0, 0);
       this.selectionHandles.push(rect);
@@ -99,7 +98,7 @@ export class RectangleShape extends Shape {
     renderer.moveTo(this.selectionHandles[0].x, this.selectionHandles[0].y);
 
     for (const selectionHandle of this.selectionHandles.slice(1)) {
-      if (selectionHandle !== this.selectionHandles[RectangleShape.Rotate]) {
+      if (selectionHandle !== this.selectionHandles[Shape.RotateHandle]) {
         renderer.lineTo(selectionHandle.x, selectionHandle.y);
       }
     }
@@ -142,20 +141,59 @@ export class RectangleShape extends Shape {
 
   getSelectionHandle(x: number, y: number, context: DrawingContext): number {
     let expectResize = -1;
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < this.selectionHandles.length; i++) {
       // 0  1  2
       // 3     4
       // 5  6  7
       // console.log(i);
       const cur = this.selectionHandles[i];
+      const rotatedX = (cur.x-this.centerX)*Math.cos(Shape.Radian * this.rotationDegree)-(cur.y-this.centerY)*Math.sin(Shape.Radian *this.rotationDegree)+this.centerX;
+      const rotatedY=  (cur.x-this.centerX)*Math.sin(Shape.Radian * this.rotationDegree)+(cur.y-this.centerY)*Math.cos(Shape.Radian *this.rotationDegree)+this.centerY;
+
+      const distance = Math.hypot(rotatedX-cur.x, rotatedY-cur.y);
+
+// const renderer = context.renderer;
+// renderer.save();
+//         renderer.beginPath();
+//         renderer.arc(
+//           this.centerX, // - this.mySelBoxSize,
+//           this.centerY, // - this.mySelBoxSize,
+//           this.mySelBoxSize / 2,
+//           0,
+//           2 * Math.PI,
+//           false
+//         );
+//         renderer.fillStyle = 'yellow';
+//         renderer.fill();
+//         renderer.lineWidth = 1;
+//         renderer.strokeStyle = 'yellow';
+//         renderer.stroke();
+// renderer.restore();
+
+// renderer.save();
+//         renderer.beginPath();
+//         renderer.arc(
+//           rotatedX, // - this.mySelBoxSize,
+//           rotatedY, // - this.mySelBoxSize,
+//           this.mySelBoxSize / 2,
+//           0,
+//           2 * Math.PI,
+//           false
+//         );
+//         renderer.fillStyle = 'green';
+//         renderer.fill();
+//         renderer.lineWidth = 1;
+//         renderer.strokeStyle = "green";
+//         renderer.stroke();
+// renderer.restore();
 
       // we dont need to use the ghost context because
       // selection handles will always be rectangles
       if (
-        x >= cur.x - this.mySelBoxSize / 2 &&
-        x <= cur.x + this.mySelBoxSize / 2 &&
-        y >= cur.y - this.mySelBoxSize / 2 &&
-        y <= cur.y + this.mySelBoxSize / 2
+        x >= rotatedX - this.mySelBoxSize / 2 &&
+        x <= rotatedX + this.mySelBoxSize / 2 &&
+        y >= rotatedY - this.mySelBoxSize / 2 &&
+        y <= rotatedY + this.mySelBoxSize / 2
       ) {
         // we found one!
         expectResize = i;
@@ -222,25 +260,55 @@ export class RectangleShape extends Shape {
               context.canvas.style.cursor = 'se-resize';
             }
             break;
-          // case RectangleShape.Rotate:
-          //   context.canvas.style.cursor = 'w-resize';
-          //   break;
+          case Shape.RotateHandle:
+            context.canvas.style.cursor = 'grab';
+            break;
         }
       }
     }
-
+ 
     return expectResize;
   }
 
   resize(x: number, y: number, expectResize: number, context: DrawingContext) {
     // time ro resize!
+  const rotation = Shape.Radian * (this.rotationDegree);
+
+
+    // const unRotatedX = (x-this.centerX)*Math.cos(Shape.Radian * (360-this.rotationDegree))-(y-this.centerY)*Math.sin(Shape.Radian * (360-this.rotationDegree))+this.centerX; 
+    // const unRotatedY = (x-this.centerX)*Math.sin(Shape.Radian * (360-this.rotationDegree))+(y-this.centerY)*Math.cos(Shape.Radian * (360-this.rotationDegree))+this.centerY;
+    //const distance = Math.hypot(this.x, unr)
+const renderer = context.renderer;
+    renderer.save();
+        renderer.beginPath();
+        renderer.arc(
+          this.selectionHandles[expectResize].x, // - this.mySelBoxSize, 
+          this.selectionHandles[expectResize].y, // - this.mySelBoxSize,
+          this.mySelBoxSize / 2,
+          0,
+          2 * Math.PI, 
+          false
+        );
+        renderer.fillStyle = 'blue';
+        renderer.fill();
+        renderer.lineWidth = 1;
+        renderer.strokeStyle = 'blue';
+        renderer.stroke();
+renderer.restore();
+
     const oldx = this.x;
     const oldy = this.y;
+    // const oldx = unRotatedX;
+    // const oldy = unRotatedY;
+    // const distance = Math.hypot(x2-x1, y2-y1);
 
     // 0  1  2
-    // 3     4
-    // 5  6  7
-    switch (expectResize) {
+    // 7     3
+    // 6  5  4
+    //    8
+
+    const selectionHandle = this.selectionHandles[expectResize];
+    switch (expectResize) { 
       case RectangleShape.TopLeft:
         this.x = x;
         this.y = y;
@@ -250,6 +318,18 @@ export class RectangleShape extends Shape {
       case RectangleShape.Top:
         this.y = y;
         this.h += oldy - y;
+        // const a = selectionHandle.x - x;
+        // const b = selectionHandle.y - y;
+        // const addedHeight2 =  Math.sqrt( a*a + b*b);
+
+        //console.log(addedHeight, addedHeight2);
+        // this.x += addedHeight * Math.sin(rotation);
+        // this.y += addedHeight * Math.cos(-rotation);
+        // this.h += addedHeight;
+  //       recty -= addedHeight/2;
+  // x += addedHeight/2 * Math.sin(rotation);
+  // y -= addedHeight/2 * Math.cos(-rotation);
+  // recth += addedHeight;
         break;
       case RectangleShape.TopRight:
         this.y = y;
@@ -275,12 +355,52 @@ export class RectangleShape extends Shape {
         this.w = x - oldx;
         this.h = y - oldy;
         break;
-      case 8:
+      case Shape.RotateHandle:
         // set rotation
         // this.h = y - oldy;
         break;
     }
 
+    // switch (expectResize) {
+    //   case RectangleShape.TopLeft:
+    //     this.x = unRotatedX;
+    //     this.y = unRotatedY;
+    //     this.w += oldx - unRotatedX;
+    //     this.h += oldy - unRotatedY;
+    //     break;
+    //   case RectangleShape.Top:
+    //     this.y = unRotatedY;
+    //     this.h += oldy - unRotatedY;
+    //     break;
+    //   case RectangleShape.TopRight:
+    //     this.y = unRotatedY;
+    //     this.w = unRotatedX - oldx;
+    //     this.h += oldy - unRotatedY;
+    //     break;
+    //   case RectangleShape.Left:
+    //     this.x = unRotatedX;
+    //     this.w += oldx - unRotatedX;
+    //     break;
+    //   case RectangleShape.Right:
+    //     this.w = unRotatedX - oldx;
+    //     break;
+    //   case RectangleShape.BottomLeft:
+    //     this.x = unRotatedX;
+    //     this.w += oldx - unRotatedX;
+    //     this.h = unRotatedY - oldy;
+    //     break;
+    //   case RectangleShape.Bottom:
+    //     this.h = unRotatedY - oldy;
+    //     break;
+    //   case RectangleShape.BottomRight:
+    //     this.w = unRotatedX - oldx;
+    //     this.h = unRotatedY - oldy;
+    //     break;
+    //   case RectangleShape.Rotate:
+    //     // set rotation
+    //     // this.h = unRotatedY - oldy;
+    //     break;
+    // }
     this.adjustSelectionHandles();
 
     // if (this.selectionHandles.length > 0) {
@@ -345,7 +465,7 @@ export class RectangleShape extends Shape {
   //     this.selectionHandles[RectangleShape.BottomRight].x = this.x + this.w - half;
   //     this.selectionHandles[RectangleShape.BottomRight].y = this.y + this.h - half;
   //   }
-  // }
+  // } 
 
   private adjustSelectionHandles() {
     // calculate the selectionHandles
@@ -381,8 +501,8 @@ export class RectangleShape extends Shape {
     this.selectionHandles[RectangleShape.BottomRight].x = this.x + this.w;
     this.selectionHandles[RectangleShape.BottomRight].y = this.y + this.h;
 
-    // this.selectionHandles[RectangleShape.Rotate].x = this.x + this.w / 2;
-    // this.selectionHandles[RectangleShape.Rotate].y = this.y + this.h + 25;
+    this.selectionHandles[Shape.RotateHandle].x = this.x + this.w / 2;
+    this.selectionHandles[Shape.RotateHandle].y = this.y + this.h + 25;
   }
 
   moveTo(x: number, y: number, context: DrawingContext): void {
