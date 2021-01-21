@@ -150,8 +150,6 @@ export class RectangleShape extends Shape {
       const rotatedX = (cur.x-this.centerX)*Math.cos(Shape.Radian * this.rotationDegree)-(cur.y-this.centerY)*Math.sin(Shape.Radian *this.rotationDegree)+this.centerX;
       const rotatedY=  (cur.x-this.centerX)*Math.sin(Shape.Radian * this.rotationDegree)+(cur.y-this.centerY)*Math.cos(Shape.Radian *this.rotationDegree)+this.centerY;
 
-      const distance = Math.hypot(rotatedX-cur.x, rotatedY-cur.y);
-
 // const renderer = context.renderer;
 // renderer.save();
 //         renderer.beginPath();
@@ -269,21 +267,26 @@ export class RectangleShape extends Shape {
  
     return expectResize;
   }
-
   resize(x: number, y: number, expectResize: number, context: DrawingContext) {
     // time ro resize!
   const rotation = Shape.Radian * (this.rotationDegree);
 
+// x = pOrigin.X + ((float)Math.Cos(rads) * (pPoint.X - pOrigin.X) - (float)Math.Sin(rads) * (pPoint.Y - pOrigin.Y));
+// y = pOrigin.Y + ((float)Math.Sin(rads) * (pPoint.X - pOrigin.X) + (float)Math.Cos(rads) * (pPoint.Y - pOrigin.Y)));
+      const cur = this.selectionHandles[expectResize];
+            
+      const rotatedX = (x-this.centerX)*Math.cos(Shape.Radian * this.rotationDegree)-(y-this.centerY)*Math.sin(Shape.Radian *this.rotationDegree)+this.centerX;
+      const rotatedY=  (x-this.centerX)*Math.sin(Shape.Radian * this.rotationDegree)+(y-this.centerY)*Math.cos(Shape.Radian *this.rotationDegree)+this.centerY;
 
     // const unRotatedX = (x-this.centerX)*Math.cos(Shape.Radian * (360-this.rotationDegree))-(y-this.centerY)*Math.sin(Shape.Radian * (360-this.rotationDegree))+this.centerX; 
     // const unRotatedY = (x-this.centerX)*Math.sin(Shape.Radian * (360-this.rotationDegree))+(y-this.centerY)*Math.cos(Shape.Radian * (360-this.rotationDegree))+this.centerY;
     //const distance = Math.hypot(this.x, unr)
 const renderer = context.renderer;
-    renderer.save();
+    renderer.save(); 
         renderer.beginPath();
         renderer.arc(
-          this.selectionHandles[expectResize].x, // - this.mySelBoxSize, 
-          this.selectionHandles[expectResize].y, // - this.mySelBoxSize,
+          rotatedX, // - this.mySelBoxSize, 
+          rotatedY, // - this.mySelBoxSize,
           this.mySelBoxSize / 2,
           0,
           2 * Math.PI, 
@@ -303,26 +306,35 @@ renderer.restore();
     // const distance = Math.hypot(x2-x1, y2-y1);
 
     // 0  1  2
-    // 7     3
+    // 7     3 
     // 6  5  4
     //    8
 
     const selectionHandle = this.selectionHandles[expectResize];
-    switch (expectResize) { 
+    switch (expectResize) {  
       case RectangleShape.TopLeft:
         this.x = x;
         this.y = y;
         this.w += oldx - x;
-        this.h += oldy - y;
+        this.h += oldy -y; 
         break;
       case RectangleShape.Top:
         this.y = y;
-        this.h += oldy - y;
-        // const a = selectionHandle.x - x;
-        // const b = selectionHandle.y - y;
-        // const addedHeight2 =  Math.sqrt( a*a + b*b);
+        this.h += oldy - y; 
 
-        //console.log(addedHeight, addedHeight2);
+        // this.y = rotatedY;
+        // this.h += oldy - rotatedY; 
+
+
+        // const a = selectionHandle.x - rotatedX;
+        // const b = selectionHandle.y - rotatedY; 
+        // const addedHeight = Math.sqrt( a*a + b*b);
+        // const newX = addedHeight * Math.sin(rotation);
+        // const newY = addedHeight * Math.cos(-rotation);
+        // this.x = newX ;
+        // this.y = newY ;
+        // this.h += oldy - this.y;
+        // console.log(addedHeight, newX, newY);
         // this.x += addedHeight * Math.sin(rotation);
         // this.y += addedHeight * Math.cos(-rotation);
         // this.h += addedHeight;
@@ -355,10 +367,10 @@ renderer.restore();
         this.w = x - oldx;
         this.h = y - oldy;
         break;
-      case Shape.RotateHandle:
-        // set rotation
-        // this.h = y - oldy;
-        break;
+      // case Shape.RotateHandle:
+      //   // set rotation
+      //   // this.h = y - oldy;
+      //   break;
     }
 
     // switch (expectResize) {

@@ -4,3 +4,15 @@
 
 /* #container2 { position: relative; background:orange } */
 /* #canvas2 { border: 1px solid #000; } */
+
+#container2 {
+  background: Red;
+  height:100vh;
+  /* height:500px;
+  width:300px; */
+  /* min-width:300px; 
+  min-height:500px;
+  height:70vh;
+  width:70vh; */
+}
+

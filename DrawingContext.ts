@@ -34,6 +34,12 @@ export class DrawingContext {
   isCreatingShapeY?: number = null;
   expectResize = -1; // New, will save the # of the selection handle if the mouse is over one.
   background: HTMLImageElement;
+  get aspectRatio(): number {
+    if (this.background) {
+      return this.background.width / this.background.height;
+    }
+    return 0.75;
+  }
 
   constructor(canvas: HTMLCanvasElement, config: DrawingConfig) {
     this.canvas = canvas;
@@ -44,8 +50,10 @@ export class DrawingContext {
   init(background: HTMLImageElement) {
     this.background = background;
     this.canvas.style.backgroundImage = "url(" + background.src + ")";
-    this.canvas.height = this.background.height;
-    this.canvas.width = this.background.width;
+    this.canvas.style.backgroundSize = "100% 100%";
+    this.canvas.height = this.canvas.parentElement.clientHeight;
+    this.canvas.width = this.canvas.height * this.aspectRatio;
+
     // this.renderer.fillStyle = "silver";
     // this.renderer.fillRect(0, 0, this.canvas.width, this.canvas.height);
     // this.renderer.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -117,11 +125,15 @@ export class DrawingContext {
     document.addEventListener("mousemove", function(e) {
       self.myMove(e);
     });
-
+    window.onresize = function() {
+      self.canvas.height = self.canvas.parentElement.clientHeight;
+      self.canvas.width = self.canvas.height * self.aspectRatio;
+      self.invalidate();
+    };
     // add custom initialization here:
 
     // // add a large green rectangle
-    this.addRect(260, 70, 60, 65, "rgba(0,205,0,0.7)");
+    // this.addRect(260, 70, 60, 65, 'rgba(0,205,0,0.7)');
 
     // // add a green-blue rectangle
     // this.addRect(240, 120, 40, 40, 'rgba(2,165,165,0.7)');
@@ -463,13 +475,13 @@ export class DrawingContext {
     } else if (this.isRotate) {
       // this.getMouse(e);
 
-      var angleFromRotationhandleToCenter = Math.atan2(
+      const angleFromRotationhandleToCenter = Math.atan2(
         this.activeShape.selectionHandles[Shape.RotateHandle].y -
           this.activeShape.centerY,
         this.activeShape.selectionHandles[Shape.RotateHandle].x -
           this.activeShape.centerX
       );
-      var angleFromMouseToCenter = Math.atan2(
+      const angleFromMouseToCenter = Math.atan2(
         this.mousePoint.y - this.activeShape.centerY,
         this.mousePoint.x - this.activeShape.centerX
       );

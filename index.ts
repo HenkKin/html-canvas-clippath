@@ -17,8 +17,8 @@ const drawingContext = new DrawingContext(canvas, config);
 const img1 = new Image();
 img1.onload = function() {
   // ctx.drawImage(img1, 40, 10);
-  drawingContext.canvas.width = img1.width;
-  drawingContext.canvas.height = img1.height;
+  // drawingContext.canvas.width = img1.width;
+  // drawingContext.canvas.height = img1.height;
   //drawingContext.renderer.drawImage(img1, 0, 0, canvas.width, canvas.height);
   drawingContext.init(img1);
 
