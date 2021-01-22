@@ -37,7 +37,7 @@ export class PolygonShape extends Shape {
     renderer: CanvasRenderingContext2D,
     context: DrawingContext,
     isGhostContext: boolean
-  ): void {
+  ): Path2D {
     if (this.selectionHandles.length === 0) {
       return;
     }
@@ -63,21 +63,23 @@ export class PolygonShape extends Shape {
     // } else {
     //   renderer.clearRect(this.x, this.y, this.w, this.h);
     // }
-    renderer.strokeStyle = this.mySelColor;
-    renderer.lineWidth = this.mySelWidth;
+    // renderer.strokeStyle = this.mySelColor;
+    // renderer.lineWidth = this.mySelWidth;
 
-    renderer.beginPath();
+    const path = new Path2D();
 
-    renderer.moveTo(this.selectionHandles[0].x, this.selectionHandles[0].y);
+    path.moveTo(this.selectionHandles[0].x, this.selectionHandles[0].y);
 
     for (const selectionHandle of this.selectionHandles.slice(1)) {
-      renderer.lineTo(selectionHandle.x, selectionHandle.y);
+      path.lineTo(selectionHandle.x, selectionHandle.y);
     }
-    renderer.closePath();
+    path.closePath();
 
-    renderer.fill();
-    renderer.restore();
-    renderer.stroke();
+    renderer.fill(path);
+    // renderer.restore();
+    // renderer.stroke(path);
+
+    return path;
     // renderer.strokeStyle = this.mySelColor;
     // renderer.lineWidth = this.mySelWidth;
     // renderer.strokeRect(this.x, this.y, this.w, this.h);

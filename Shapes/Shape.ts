@@ -14,6 +14,7 @@ export abstract class Shape {
   mySelBoxColor = "darkred"; // New for selection boxes
   mySelBoxSize = 18;
   rotationDegree = 0;
+  shapePath: Path2D = new Path2D();
 
   public abstract get x(): number;
   public abstract get y(): number;
@@ -36,7 +37,7 @@ export abstract class Shape {
     renderer.translate(this.centerX, this.centerY); // translate to rectangle center
     renderer.rotate(Shape.Radian * this.rotationDegree); // rotate
     renderer.translate(-1 * this.centerX, -1 * this.centerY); // translate back
-
+    renderer.save();
     if (isGhostContext === true) {
       renderer.fillStyle = "black"; // always want black for the ghost canvas
     } else {
@@ -44,8 +45,11 @@ export abstract class Shape {
       // context.fillStyle = this.fill;
     }
     // renderer.save();
-    this.draw(renderer, context, isGhostContext);
+    this.shapePath = this.draw(renderer, context, isGhostContext);
+    renderer.restore(); 
 
+    renderer.stroke(this.shapePath);
+    renderer.restore(); 
     // renderer.restore();
     if (context.activeShape === this) {
       // draw the boxes
@@ -106,7 +110,7 @@ export abstract class Shape {
     renderer: CanvasRenderingContext2D,
     context: DrawingContext,
     isGhostContext: boolean
-  ): void;
+  ): Path2D;
 
   abstract resize(
     x: number,

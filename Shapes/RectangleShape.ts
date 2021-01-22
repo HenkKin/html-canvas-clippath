@@ -88,25 +88,26 @@ export class RectangleShape extends Shape {
     renderer: CanvasRenderingContext2D,
     context: DrawingContext,
     isGhostContext: boolean
-  ): void {
+  ): Path2D {
 
-    renderer.strokeStyle = this.mySelColor;
-    renderer.lineWidth = this.mySelWidth;
+    // renderer.strokeStyle = this.mySelColor;
+    // renderer.lineWidth = this.mySelWidth;
 
-    renderer.beginPath();
+    const path = new Path2D();
 
-    renderer.moveTo(this.selectionHandles[0].x, this.selectionHandles[0].y);
+    path.moveTo(this.selectionHandles[0].x, this.selectionHandles[0].y);
 
     for (const selectionHandle of this.selectionHandles.slice(1)) {
       if (selectionHandle !== this.selectionHandles[Shape.RotateHandle]) {
-        renderer.lineTo(selectionHandle.x, selectionHandle.y);
+        path.lineTo(selectionHandle.x, selectionHandle.y);
       }
     }
-    renderer.closePath();
+    path.closePath();
 
-    renderer.fill();
-    renderer.restore();
-    renderer.stroke();
+    renderer.fill(path);
+    // renderer.restore();
+    // renderer.stroke(path);
+    return path;
     // // const bounds = context.canvas.getBoundingClientRect();
     // // if (this.x < bounds.left) {
     // //   this.x = bounds.left;
