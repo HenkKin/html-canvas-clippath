@@ -188,7 +188,9 @@ export class RectangleShape extends Shape {
 
       // we dont need to use the ghost context because
       // selection handles will always be rectangles
-      if (
+      // this.rotateCanvas(context);
+      // if (context.renderer.isPointInPath(cur.shapePath, x, y)
+      if(
         x >= rotatedX - this.mySelBoxSize / 2 &&
         x <= rotatedX + this.mySelBoxSize / 2 &&
         y >= rotatedY - this.mySelBoxSize / 2 &&

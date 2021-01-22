@@ -134,7 +134,7 @@ export class DrawingContext {
     // add custom initialization here:
 
     // // add a large green rectangle
-    this.addRect(260, 70, 60, 65, 'rgba(0,205,0,0.7)');
+    this.addRect(260, 70, 60, 65, "rgba(0,205,0,0.7)");
 
     // // add a green-blue rectangle
     // this.addRect(240, 120, 40, 40, 'rgba(2,165,165,0.7)');
@@ -142,7 +142,7 @@ export class DrawingContext {
     // // add a smaller purple rectangle
     // this.addRect(45, 60, 25, 25, 'rgba(150,150,250,0.7)');
 
-    // this.addPolygonShape('rgba(150,150,250,0.7)');
+    this.addPolygonShape("rgba(150,150,250,0.7)");
   }
   // Happens when the mouse is clicked in the canvas
   myDown(e: MouseEvent) {
@@ -184,20 +184,26 @@ export class DrawingContext {
 
     for (let i = shapesToDraw.length - 1; i >= 0; i--) {
       // draw shape onto ghost context
-      // shapesToDraw[i].drawShape(this.ghostRenderer, this, true);
+      shapesToDraw[i].drawShape(this.ghostRenderer, this, true);
 
       // get image data at the mouse x,y pixel
-      // const imageData = this.ghostRenderer.getImageData(
-      //   this.mousePoint.x,
-      //   this.mousePoint.y,
-      //   1,
-      //   1
-      // );
+      const imageData = this.ghostRenderer.getImageData(
+        this.mousePoint.x,
+        this.mousePoint.y,
+        1,
+        1
+      );
       // var index = (mousePoint.x + mousePoint.y * imageData.width) * 4;
       // console.log(imageData.data);
       // if the mouse pixel exists, select and break
-      // if (imageData.data[3] > 0) {
-        if(this.renderer.isPointInPath(shapesToDraw[i].shapePath, this.mousePoint.x, this.mousePoint.y)){
+      if (imageData.data[3] > 0) {
+      // if (
+      //   this.ghostRenderer.isPointInPath(
+      //     shapesToDraw[i].shapePath,
+      //     this.mousePoint.x,
+      //     this.mousePoint.y
+      //   )
+      // ) {
         this.activeShape = shapesToDraw[i];
         if (e.ctrlKey === true) {
           this.shapes = this.shapes.filter(s => s !== this.activeShape);
@@ -476,7 +482,7 @@ export class DrawingContext {
       this.invalidate();
     } else if (this.isRotate) {
       // this.getMouse(e);
-
+      this.canvas.style.cursor = "grabbing";
       const angleFromRotationhandleToCenter = Math.atan2(
         this.activeShape.selectionHandles[Shape.RotateHandle].y -
           this.activeShape.centerY,
@@ -515,7 +521,7 @@ export class DrawingContext {
     } else {
       if (!this.isResizeDrag) {
         this.canvas.style.cursor = this.isDrag ? "move" : "auto";
-      }
+      } 
     }
   }
 }

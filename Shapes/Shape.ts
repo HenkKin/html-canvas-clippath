@@ -28,6 +28,12 @@ export abstract class Shape {
   //   this._y = y;
   // }
 
+  rotateCanvas(context: DrawingContext){
+    context.renderer.translate(this.centerX, this.centerY); // translate to rectangle center
+    context.renderer.rotate(Shape.Radian * this.rotationDegree); // rotate
+    context.renderer.translate(-1 * this.centerX, -1 * this.centerY); // translate back
+  }
+
   public drawShape(
     renderer: CanvasRenderingContext2D,
     context: DrawingContext,
@@ -46,10 +52,10 @@ export abstract class Shape {
     }
     // renderer.save();
     this.shapePath = this.draw(renderer, context, isGhostContext);
-    renderer.restore(); 
+    renderer.restore();
 
     renderer.stroke(this.shapePath);
-    renderer.restore(); 
+    renderer.restore();
     // renderer.restore();
     if (context.activeShape === this) {
       // draw the boxes
@@ -64,8 +70,8 @@ export abstract class Shape {
       for (let i = 0; i < this.selectionHandles.length; i++) {
         const cur = this.selectionHandles[i];
 
-        renderer.beginPath();
-        renderer.arc(
+        cur.shapePath = new Path2D();
+        cur.shapePath.arc(
           cur.x, // - this.mySelBoxSize,
           cur.y, // - this.mySelBoxSize,
           this.mySelBoxSize / 2,
@@ -73,16 +79,17 @@ export abstract class Shape {
           2 * Math.PI,
           false
         );
+        cur.shapePath.closePath();
 
         if (i === 0) {
           renderer.fillStyle = "orange";
         } else {
           renderer.fillStyle = this.mySelBoxColor;
         }
-        renderer.fill();
+        renderer.fill(cur.shapePath);
         renderer.lineWidth = 1;
         renderer.strokeStyle = "#003300";
-        renderer.stroke();
+        renderer.stroke(cur.shapePath);
       }
 
       renderer.save();
@@ -95,10 +102,10 @@ export abstract class Shape {
         2 * Math.PI,
         false
       );
-      renderer.fillStyle = 'yellow';
+      renderer.fillStyle = "yellow";
       renderer.fill();
       renderer.lineWidth = 1;
-      renderer.strokeStyle = 'yellow';
+      renderer.strokeStyle = "yellow";
       renderer.stroke();
       renderer.restore();
     }
