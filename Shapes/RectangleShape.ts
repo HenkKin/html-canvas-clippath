@@ -2,6 +2,8 @@ import { DrawingContext } from '../DrawingContext';
 import { SelectionHandle } from '../SelectionHandle';
 import { Shape } from '../Shapes/Shape';
 
+
+// thanks to 
 export class RectangleShape extends Shape {
   static TopLeft = 0;
   static Top = 1;
