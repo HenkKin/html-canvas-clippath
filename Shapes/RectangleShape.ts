@@ -298,16 +298,14 @@ export class RectangleShape extends Shape {
       renderer.restore();
   }
   
-  private adjustRectangle2(mousePointX, mousePointY, oppositeHandleX, oppositeHandleY, angle, isHeight:boolean) {
+  private adjustRectangle2(mousePointX, mousePointY, oppositeHandleX, oppositeHandleY, angle, isFixedX:boolean,isFixedY:boolean) {
     const center = [
       this.centerX,
       this.centerY
     ];
 
     const mouseHandle = this.rotate(mousePointX, mousePointY, center[0], center[1], -angle);
-    const mouseHandle2 = isHeight 
-    ? this.rotate(oppositeHandleX, mouseHandle[1], center[0], center[1], angle)
-    :this.rotate(mouseHandle[0], oppositeHandleY, center[0], center[1], angle);;
+    const mouseHandle2 = this.rotate(isFixedX? oppositeHandleX: mouseHandle[0], isFixedY ? oppositeHandleY : mouseHandle[1], center[0], center[1], angle);
     
     const oppositeHandle = this.rotate(oppositeHandleX, oppositeHandleY, center[0], center[1], angle);
     const newCenter = [
@@ -344,44 +342,44 @@ export class RectangleShape extends Shape {
   }
   
   
-  private adjustRectangle(mousePointX, mousePointY, oppositeHandleX, oppositeHandleY, angle) {
-    const center = [
-      this.centerX,
-      this.centerY
-    ];
-    const oppositeHandle = this.rotate(oppositeHandleX, oppositeHandleY, center[0], center[1], angle);
-    const newCenter = [
-      (oppositeHandle[0] + mousePointX) / 2,
-      (oppositeHandle[1] + mousePointY) / 2,
-    ];
-    const newOppositeHandle = this.rotate(
-      oppositeHandle[0],
-      oppositeHandle[1],
-      newCenter[0],
-      newCenter[1], 
-      -angle
-    );
-    const newHandle = this.rotate(
-      mousePointX,
-      mousePointY,
-      newCenter[0],
-      newCenter[1],
-      -angle
-    );
+  // private adjustRectangle(mousePointX, mousePointY, oppositeHandleX, oppositeHandleY, angle) {
+  //   const center = [
+  //     this.centerX,
+  //     this.centerY
+  //   ];
+  //   const oppositeHandle = this.rotate(oppositeHandleX, oppositeHandleY, center[0], center[1], angle);
+  //   const newCenter = [
+  //     (oppositeHandle[0] + mousePointX) / 2,
+  //     (oppositeHandle[1] + mousePointY) / 2,
+  //   ];
+  //   const newOppositeHandle = this.rotate(
+  //     oppositeHandle[0],
+  //     oppositeHandle[1],
+  //     newCenter[0],
+  //     newCenter[1], 
+  //     -angle
+  //   );
+  //   const newHandle = this.rotate(
+  //     mousePointX,
+  //     mousePointY,
+  //     newCenter[0],
+  //     newCenter[1],
+  //     -angle
+  //   );
 
-    const newWidth = newHandle[0] - newOppositeHandle[0];
-    const newHeight = newHandle[1] - newOppositeHandle[1];
-    // console.log(newOppositeHandle, oppositeHandle, this.w, this.h);
-    //this.centerX = newOppositeHandle[0] + newWidth/2;
-    //this.centerY = newOppositeHandle[1] + newHeight/2;
-    // this.w = newWidth < 0 ? newWidth * -1 : newWidth;
-    // this.h = newHeight < 0 ? newHeight * -1 : newHeight;
-    return [newOppositeHandle[0], newOppositeHandle[1], newWidth, newHeight];
-    // rectangle.x = newTopLeft[0];
-    // rectangle.y = newTopLeft[1];
-    // rectangle.width = newBottomRight[0] - newTopLeft[0];
-    // rectangle.height = newBottomRight[1] - newTopLeft[1];
-  }
+  //   const newWidth = newHandle[0] - newOppositeHandle[0];
+  //   const newHeight = newHandle[1] - newOppositeHandle[1];
+  //   // console.log(newOppositeHandle, oppositeHandle, this.w, this.h);
+  //   //this.centerX = newOppositeHandle[0] + newWidth/2;
+  //   //this.centerY = newOppositeHandle[1] + newHeight/2;
+  //   // this.w = newWidth < 0 ? newWidth * -1 : newWidth;
+  //   // this.h = newHeight < 0 ? newHeight * -1 : newHeight;
+  //   return [newOppositeHandle[0], newOppositeHandle[1], newWidth, newHeight];
+  //   // rectangle.x = newTopLeft[0];
+  //   // rectangle.y = newTopLeft[1];
+  //   // rectangle.width = newBottomRight[0] - newTopLeft[0];
+  //   // rectangle.height = newBottomRight[1] - newTopLeft[1];
+  // }
 
   resize(x: number, y: number, expectResize: number, context: DrawingContext) {
     // time ro resize!
@@ -426,7 +424,7 @@ export class RectangleShape extends Shape {
     let delta;
     switch (expectResize) {  
       case RectangleShape.TopLeft:
-        delta = this.adjustRectangle(x, y, bottomRight.x, bottomRight.y, this.rotationDegree * Shape.Radian);
+        delta = this.adjustRectangle2(x, y, bottomRight.x, bottomRight.y, this.rotationDegree * Shape.Radian, false, false);
         this.centerX = (delta[0] + delta[2]/2);
         this.centerY = (delta[1] + delta[3]/2);
         this.w = delta[2] * -1;
@@ -440,7 +438,7 @@ export class RectangleShape extends Shape {
         // this.centerY = rotatedMousePointY;
         // this.h += oldCenterY - rotatedMousePointY; 
 
-        delta = this.adjustRectangle2(x, y, bottom.x, bottom.y, this.rotationDegree * Shape.Radian, true); 
+        delta = this.adjustRectangle2(x, y, bottom.x, bottom.y, this.rotationDegree * Shape.Radian, true, false); 
         this.centerX = (delta[0] + delta[2]/2);
         this.centerY = (delta[1] + delta[3]/2);
         // this.w = delta[2] * -1;
@@ -467,7 +465,7 @@ export class RectangleShape extends Shape {
         // this.w = x - oldCenterX;
         // this.h += oldCenterY - y;
 
-        delta = this.adjustRectangle(x, y, bottomLeft.x, bottomLeft.y, this.rotationDegree * Shape.Radian);
+        delta = this.adjustRectangle2(x, y, bottomLeft.x, bottomLeft.y, this.rotationDegree * Shape.Radian, false, false);
         this.centerX = (delta[0] + delta[2]/2);
         this.centerY = (delta[1] + delta[3]/2);
         this.w = delta[2];
@@ -478,7 +476,7 @@ export class RectangleShape extends Shape {
         // this.centerX = x;
         // this.w += oldCenterX - x;
         // this.adjustRectangle(x, y, right.x, right.y, this.rotationDegree * Shape.Radian); 
-        delta = this.adjustRectangle2(x, y, right.x, right.y, this.rotationDegree * Shape.Radian, false); 
+        delta = this.adjustRectangle2(x, y, right.x, right.y, this.rotationDegree * Shape.Radian, false, true); 
         this.centerX = (delta[0] + delta[2]/2);
         this.centerY = (delta[1] + delta[3]/2);
         this.w = delta[2]*-1;
@@ -487,7 +485,7 @@ export class RectangleShape extends Shape {
       case RectangleShape.Right:
         // this.w = x - oldCenterX;
         // this.adjustRectangle(x, y, left.x, left.y, this.rotationDegree * Shape.Radian); 
-        delta = this.adjustRectangle2(x, y, left.x, left.y, this.rotationDegree * Shape.Radian, false); 
+        delta = this.adjustRectangle2(x, y, left.x, left.y, this.rotationDegree * Shape.Radian, false, true); 
         this.centerX = (delta[0] + delta[2]/2);
         this.centerY = (delta[1] + delta[3]/2);
         this.w = delta[2];
@@ -496,7 +494,7 @@ export class RectangleShape extends Shape {
         // this.centerX = x;
         // this.w += oldCenterX - x;
         // this.h = y - oldCenterY;
-        delta = this.adjustRectangle(x, y, topRight.x, topRight.y, this.rotationDegree * Shape.Radian);
+        delta = this.adjustRectangle2(x, y, topRight.x, topRight.y, this.rotationDegree * Shape.Radian, false, false);
         this.centerX = (delta[0] + delta[2]/2);
         this.centerY = (delta[1] + delta[3]/2);
         this.w = delta[2] * -1;
@@ -504,7 +502,7 @@ export class RectangleShape extends Shape {
         break;
       case RectangleShape.Bottom:
         // this.h = y - oldCenterY;
-        delta = this.adjustRectangle2(x, y, top.x, top.y, this.rotationDegree * Shape.Radian, true); 
+        delta = this.adjustRectangle2(x, y, top.x, top.y, this.rotationDegree * Shape.Radian, true, false); 
         this.centerX = (delta[0] + delta[2]/2);
         this.centerY = (delta[1] + delta[3]/2);
         // this.w = delta[2] * -1;
@@ -514,7 +512,7 @@ export class RectangleShape extends Shape {
         // this.w = x - oldCenterX;
         // this.h = y - oldCenterY;
 
-        delta = this.adjustRectangle(x, y, topLeft.x, topLeft.y, this.rotationDegree * Shape.Radian);
+        delta = this.adjustRectangle2(x, y, topLeft.x, topLeft.y, this.rotationDegree * Shape.Radian, false, false);
         // rectangle.x = newTopLeft[0];
         // rectangle.y = newTopLeft[1];
         // this.centerX += delta[0] * Math.cos(this.rotationDegree * Shape.Radian);
