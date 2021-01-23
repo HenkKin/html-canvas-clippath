@@ -9,6 +9,7 @@ export abstract class Shape {
   // private _x: number;
   // private _y: number;
   selectionHandles: SelectionHandle[] = [];
+  rotationHandle: SelectionHandle;
   mySelColor = "#CC0000";
   mySelWidth = 1;
   mySelBoxColor = "darkred"; // New for selection boxes
@@ -166,6 +167,8 @@ export abstract class Shape {
         y = Math.round((y / 100) * imageHeight);
         this.selectionHandles.push(new SelectionHandle(x, y));
       }
+
+      // TODO: calculate rotationDegree
 
       context.invalidate();
     }

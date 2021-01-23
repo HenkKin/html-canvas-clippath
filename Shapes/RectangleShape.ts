@@ -3,7 +3,7 @@ import { SelectionHandle } from '../SelectionHandle';
 import { Shape } from '../Shapes/Shape';
 
 
-// thanks to 
+// thanks to https://shihn.ca/posts/2020/resizing-rotated-elements/
 export class RectangleShape extends Shape {
   static TopLeft = 0;
   static Top = 1;
