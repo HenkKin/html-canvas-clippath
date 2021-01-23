@@ -16,10 +16,17 @@ export abstract class Shape {
   rotationDegree = 0;
   shapePath: Path2D = new Path2D();
 
-  public abstract get x(): number;
-  public abstract get y(): number;
-  public abstract get centerX(): number;
-  public abstract get centerY(): number;
+  // public abstract get x(): number;
+  // public abstract get y(): number;
+  // public abstract get centerX(): number;
+  // public abstract get centerY(): number;
+
+  // public abstract get centerX(): number;
+  // public abstract get centerY(): number;
+  // public abstract set centerX(centerX: number);
+  // public abstract set centerY(centerY: number);
+  public centerX: number;
+  public centerY: number;
 
   // public set x(x: number) {
   //   this._x = x;
@@ -28,10 +35,10 @@ export abstract class Shape {
   //   this._y = y;
   // }
 
-  rotateCanvas(context: DrawingContext){
-    context.renderer.translate(this.centerX, this.centerY); // translate to rectangle center
-    context.renderer.rotate(Shape.Radian * this.rotationDegree); // rotate
-    context.renderer.translate(-1 * this.centerX, -1 * this.centerY); // translate back
+  rotateCanvas(renderer: CanvasRenderingContext2D) {
+    renderer.translate(this.centerX, this.centerY); // translate to rectangle center
+    renderer.rotate(Shape.Radian * this.rotationDegree); // rotate
+    renderer.translate(-1 * this.centerX, -1 * this.centerY); // translate back
   }
 
   public drawShape(
@@ -40,9 +47,7 @@ export abstract class Shape {
     isGhostContext: boolean
   ): void {
     renderer.save();
-    renderer.translate(this.centerX, this.centerY); // translate to rectangle center
-    renderer.rotate(Shape.Radian * this.rotationDegree); // rotate
-    renderer.translate(-1 * this.centerX, -1 * this.centerY); // translate back
+    this.rotateCanvas(renderer);
     renderer.save();
     if (isGhostContext === true) {
       renderer.fillStyle = "black"; // always want black for the ghost canvas
@@ -61,9 +66,7 @@ export abstract class Shape {
       // draw the boxes
       renderer.restore();
       renderer.save();
-      renderer.translate(this.centerX, this.centerY); // translate to rectangle center
-      renderer.rotate(Shape.Radian * this.rotationDegree); // rotate
-      renderer.translate(-1 * this.centerX, -1 * this.centerY); // translate back
+      this.rotateCanvas(renderer);
 
       renderer.fillStyle = this.mySelBoxColor;
 

@@ -197,20 +197,20 @@ export class DrawingContext {
       // console.log(imageData.data);
       // if the mouse pixel exists, select and break
       if (imageData.data[3] > 0) {
-      // if (
-      //   this.ghostRenderer.isPointInPath(
-      //     shapesToDraw[i].shapePath,
-      //     this.mousePoint.x,
-      //     this.mousePoint.y
-      //   )
-      // ) {
+        // if (
+        //   this.ghostRenderer.isPointInPath(
+        //     shapesToDraw[i].shapePath,
+        //     this.mousePoint.x,
+        //     this.mousePoint.y
+        //   )
+        // ) {
         this.activeShape = shapesToDraw[i];
         if (e.ctrlKey === true) {
           this.shapes = this.shapes.filter(s => s !== this.activeShape);
           this.activeShape = null;
         } else {
-          this.mousePointOffsetX = this.mousePoint.x - this.activeShape.x;
-          this.mousePointOffsetY = this.mousePoint.y - this.activeShape.y;
+          this.mousePointOffsetX = this.mousePoint.x - this.activeShape.centerX;
+          this.mousePointOffsetY = this.mousePoint.y - this.activeShape.centerY;
           this.activeShape.moveTo(
             this.mousePoint.x - this.mousePointOffsetX,
             this.mousePoint.y - this.mousePointOffsetY,
@@ -414,10 +414,10 @@ export class DrawingContext {
       this.isCreatingShape = false;
       const minimumDistance = 10;
       if (
-        this.mousePoint.x > this.activeShape.x - minimumDistance &&
-        this.mousePoint.x < this.activeShape.x + minimumDistance &&
-        this.mousePoint.y > this.activeShape.y - minimumDistance &&
-        this.mousePoint.y < this.activeShape.y + minimumDistance
+        this.mousePoint.x > this.activeShape.centerX - minimumDistance &&
+        this.mousePoint.x < this.activeShape.centerX + minimumDistance &&
+        this.mousePoint.y > this.activeShape.centerY - minimumDistance &&
+        this.mousePoint.y < this.activeShape.centerY + minimumDistance
       ) {
         this.shapes = this.shapes.filter(s => s !== this.activeShape);
         this.activeShape = null;
@@ -435,7 +435,7 @@ export class DrawingContext {
   myMove(e: MouseEvent) {
     // console.log(this.isDrag, this.isResizeDrag, this.activeShape);
 
-    this.getMouse(e);
+    this.getMouse(e); 
 
     // Boundary detection
     // if (this.isCreatingShape) {
@@ -521,7 +521,7 @@ export class DrawingContext {
     } else {
       if (!this.isResizeDrag) {
         this.canvas.style.cursor = this.isDrag ? "move" : "auto";
-      } 
+      }
     }
   }
 }

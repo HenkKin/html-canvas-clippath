@@ -1,7 +1,7 @@
-import { DrawingContext } from '../DrawingContext';
-import { Point } from '../Point';
-import { SelectionHandle } from '../SelectionHandle';
-import { Shape } from '../Shapes/Shape';
+import { DrawingContext } from "../DrawingContext";
+import { Point } from "../Point";
+import { SelectionHandle } from "../SelectionHandle";
+import { Shape } from "../Shapes/Shape";
 
 export class PolygonShape extends Shape {
   // fill = "#444444";
@@ -11,28 +11,30 @@ export class PolygonShape extends Shape {
   // mySelBoxSize = 12;
   // selectionHandles: SelectionHandle[] = [];
 
-  get x(): number {
-    return this.selectionHandles.length > 0 ? this.selectionHandles[0].x : 0;
-  }
-  get y(): number {
-    return this.selectionHandles.length > 0 ? this.selectionHandles[0].y : 0;
-  }
-  public get centerX(): number {
-    return this.x;
-  }
-  public get centerY(): number {
-    return this.y;
-  }
+  // get x(): number {
+  //   return this.selectionHandles.length > 0 ? this.selectionHandles[0].x : 0;
+  // }
+  // get y(): number {
+  //   return this.selectionHandles.length > 0 ? this.selectionHandles[0].y : 0;
+  // }
+  // public get centerX(): number {
+  //   return this.x;
+  // }
+  // public get centerY(): number {
+  //   return this.y;
+  // }
   constructor() {
     super();
     // for (var i = 0; i < 8; i++) {
     //   var rect = new SelectionHandle();
     //   this.selectionHandles.push(rect);
     // }
+
+    // this.selectionHandles.
   }
-  mousedown(x: number, y: number, context: DrawingContext): void { }
-  mouseup(x: number, y: number, context: DrawingContext): void { }
-  mousemove(x: number, y: number, context: DrawingContext): void { }
+  mousedown(x: number, y: number, context: DrawingContext): void {}
+  mouseup(x: number, y: number, context: DrawingContext): void {}
+  mousemove(x: number, y: number, context: DrawingContext): void {}
   draw(
     renderer: CanvasRenderingContext2D,
     context: DrawingContext,
@@ -41,6 +43,16 @@ export class PolygonShape extends Shape {
     if (this.selectionHandles.length === 0) {
       return;
     }
+
+    let sumX =0;
+    let sumY = 0;
+    for(let i = 0; i < this.selectionHandles.length; i++){
+      sumX += this.selectionHandles[i].x;
+      sumY += this.selectionHandles[i].y;
+    }
+
+    this.centerX = sumX/this.selectionHandles.length;
+    this.centerY = sumY/this.selectionHandles.length;
     // const bounds = context.canvas.getBoundingClientRect();
     // if (this.x < bounds.left) {
     //   this.x = bounds.left;
@@ -135,7 +147,7 @@ export class PolygonShape extends Shape {
       ) {
         // we found one!
         expectResize = i;
-        context.canvas.style.cursor = 'move';
+        context.canvas.style.cursor = "move";
         context.invalidate();
       }
     }
@@ -153,8 +165,8 @@ export class PolygonShape extends Shape {
 
   moveTo(x: number, y: number, context: DrawingContext): void {
     if (this.selectionHandles.length > 0) {
-      const moveX = x - this.selectionHandles[0].x;
-      const moveY = y - this.selectionHandles[0].y;
+      const moveX = x - this.centerX;
+      const moveY = y - this.centerY;
       // console.log(x, y, moveX, moveY);
       for (const selectionHandle of this.selectionHandles) {
         selectionHandle.x += moveX;

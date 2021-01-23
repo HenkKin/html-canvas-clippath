@@ -16,32 +16,32 @@ export class RectangleShape extends Shape {
   mousedown(x: number, y: number, context: DrawingContext): void { }
   mouseup(x: number, y: number, context: DrawingContext): void { }
   mousemove(x: number, y: number, context: DrawingContext): void { }
-  public get x(): number {
-    return this.selectionHandles.length > 0 ? this.selectionHandles[RectangleShape.TopLeft].x : 0;
-  }
-  public get y(): number {
-    return this.selectionHandles.length > 0 ? this.selectionHandles[RectangleShape.TopLeft].y : 0;
-  }
+  // public get x(): number {
+  //   return this.selectionHandles.length > 0 ? this.selectionHandles[RectangleShape.TopLeft].x : 0;
+  // }
+  // public get y(): number {
+  //   return this.selectionHandles.length > 0 ? this.selectionHandles[RectangleShape.TopLeft].y : 0;
+  // }
 
-  public get centerX(): number {
-    return this.x + this.w / 2;
-  }
-  public get centerY(): number {
-    return this.y + this.h / 2;
-  }
+  // public get centerX(): number {
+  //   return this.centerX + this.w / 2;
+  // }
+  // public get centerY(): number {
+  //   return this.centerY + this.h / 2;
+  // }
 
-  public set x(x: number) {
-    if (this.selectionHandles.length > 0) {
-      this.selectionHandles[RectangleShape.TopLeft].x = x;
-      // this.adjustSelectionHandles();
-    }
-  }
-  public set y(y: number) {
-    if (this.selectionHandles.length > 0) {
-      this.selectionHandles[RectangleShape.TopLeft].y = y;
-      // this.adjustSelectionHandles();
-    }
-  }
+  // public set x(x: number) {
+  //   if (this.selectionHandles.length > 0) {
+  //     this.selectionHandles[RectangleShape.TopLeft].x = x;
+  //     // this.adjustSelectionHandles();
+  //   }
+  // }
+  // public set y(y: number) {
+  //   if (this.selectionHandles.length > 0) {
+  //     this.selectionHandles[RectangleShape.TopLeft].y = y;
+  //     // this.adjustSelectionHandles();
+  //   }
+  // }
 
   getSelectionHandleX(selectionHandleIndex: number): number {
     if (this.selectionHandles.length > 0) {
@@ -68,18 +68,19 @@ export class RectangleShape extends Shape {
       const rect = new SelectionHandle(0, 0);
       this.selectionHandles.push(rect);
     }
-    this.x = x;
-    this.y = y;
+
     this.w = w ?? 0;
     this.h = h ?? 0;
+    this.centerX = x + (this.w/2);
+    this.centerY = y + (this.h/2);
     this.adjustSelectionHandles();
   }
 
   setClipPath(clipPath: string, context: DrawingContext) {
     super.setClipPath(clipPath, context);
 
-    this.w = this.getSelectionHandleX(RectangleShape.TopRight) - this.x;
-    this.h = this.getSelectionHandleY(RectangleShape.BottomLeft) - this.y;
+    this.w = (this.getSelectionHandleX(RectangleShape.TopRight) - this.centerX) * 2;
+    this.h = (this.getSelectionHandleY(RectangleShape.BottomLeft) - this.centerY) * 2;
 
     this.adjustSelectionHandles();
   }
@@ -109,25 +110,25 @@ export class RectangleShape extends Shape {
     // renderer.stroke(path);
     return path;
     // // const bounds = context.canvas.getBoundingClientRect();
-    // // if (this.x < bounds.left) {
-    // //   this.x = bounds.left;
+    // // if (this.centerX < bounds.left) {
+    // //   this.centerX = bounds.left;
     // // }
-    // // if (this.x + this.w > bounds.right) {
-    // //   this.x = bounds.right - this.w;
+    // // if (this.centerX + this.w > bounds.right) {
+    // //   this.centerX = bounds.right - this.w;
     // // }
-    // // if (this.y < bounds.top) {
-    // //   this.y = bounds.top;
+    // // if (this.centerY < bounds.top) {
+    // //   this.centerY = bounds.top;
     // // }
-    // // if (this.y + this.h > bounds.bottom) {
-    // //   this.y = bounds.bottom - this.h;
+    // // if (this.centerY + this.h > bounds.bottom) {
+    // //   this.centerY = bounds.bottom - this.h;
     // // }
     // // We can skip the drawing of elements that have moved off the screen:
-    // // if (this.x > WIDTH || this.y > HEIGHT) return;
-    // // if (this.x + this.w < 0 || this.y + this.h < 0) return;
+    // // if (this.centerX > WIDTH || this.centerY > HEIGHT) return;
+    // // if (this.centerX + this.w < 0 || this.centerY + this.h < 0) return;
     // if (isGhostContext === true) {
-    //   renderer.fillRect(this.x, this.y, this.w, this.h);
+    //   renderer.fillRect(this.centerX, this.centerY, this.w, this.h);
     // } else {
-    //   renderer.clearRect(this.x, this.y, this.w, this.h);
+    //   renderer.clearRect(this.centerX, this.centerY, this.w, this.h);
     // }
 
     // // restore transparancy to normal
@@ -135,7 +136,7 @@ export class RectangleShape extends Shape {
     // renderer.strokeStyle =
     //   context.activeShape === this ? this.mySelColor : "black";
     // renderer.lineWidth = this.mySelWidth;
-    // renderer.strokeRect(this.x, this.y, this.w, this.h);
+    // renderer.strokeRect(this.centerX, this.centerY, this.w, this.h);
     // // draw selection
     // // this is a stroke along the box and also 8 new selection handles
   } // end draw
@@ -283,7 +284,7 @@ export class RectangleShape extends Shape {
 
     // const unRotatedX = (x-this.centerX)*Math.cos(Shape.Radian * (360-this.rotationDegree))-(y-this.centerY)*Math.sin(Shape.Radian * (360-this.rotationDegree))+this.centerX; 
     // const unRotatedY = (x-this.centerX)*Math.sin(Shape.Radian * (360-this.rotationDegree))+(y-this.centerY)*Math.cos(Shape.Radian * (360-this.rotationDegree))+this.centerY;
-    //const distance = Math.hypot(this.x, unr)
+    //const distance = Math.hypot(this.centerX, unr)
 const renderer = context.renderer;
     renderer.save(); 
         renderer.beginPath();
@@ -302,8 +303,8 @@ const renderer = context.renderer;
         renderer.stroke();
 renderer.restore();
 
-    const oldx = this.x;
-    const oldy = this.y;
+    const oldCenterX = this.centerX;
+    const oldCenterY = this.centerY;
     // const oldx = unRotatedX;
     // const oldy = unRotatedY;
     // const distance = Math.hypot(x2-x1, y2-y1);
@@ -313,20 +314,23 @@ renderer.restore();
     // 6  5  4
     //    8
 
-    const selectionHandle = this.selectionHandles[expectResize];
+    const halfWidth = 0;//this.w/2;
+    const halfHeight = 0this.h/2; 
+    // const distanceY = oldCenterY - rotatedY - halfHeight
+
     switch (expectResize) {  
       case RectangleShape.TopLeft:
-        this.x = x;
-        this.y = y;
-        this.w += oldx - x;
-        this.h += oldy -y; 
+        this.centerX = x + halfWidth;
+        this.centerY = y + halfHeight;
+        this.w += oldCenterX - x - halfWidth;
+        this.h += oldCenterY - y - halfHeight; 
         break;
       case RectangleShape.Top:
-        this.y = y;
-        this.h += oldy - y; 
+        // this.centerY = y + halfHeight;
+        // this.h += ((oldCenterY - y)); 
 
-        // this.y = rotatedY;
-        // this.h += oldy - rotatedY; 
+        this.centerY = rotatedY;
+        this.h += oldCenterY - rotatedY; 
 
 
         // const a = selectionHandle.x - rotatedX;
@@ -334,12 +338,12 @@ renderer.restore();
         // const addedHeight = Math.sqrt( a*a + b*b);
         // const newX = addedHeight * Math.sin(rotation);
         // const newY = addedHeight * Math.cos(-rotation);
-        // this.x = newX ;
-        // this.y = newY ;
-        // this.h += oldy - this.y;
+        // this.centerX = newX ;
+        // this.centerY = newY ;
+        // this.h += oldy - this.centerY;
         // console.log(addedHeight, newX, newY);
-        // this.x += addedHeight * Math.sin(rotation);
-        // this.y += addedHeight * Math.cos(-rotation);
+        // this.centerX += addedHeight * Math.sin(rotation);
+        // this.centerY += addedHeight * Math.cos(-rotation);
         // this.h += addedHeight;
   //       recty -= addedHeight/2;
   // x += addedHeight/2 * Math.sin(rotation);
@@ -347,28 +351,28 @@ renderer.restore();
   // recth += addedHeight;
         break;
       case RectangleShape.TopRight:
-        this.y = y;
-        this.w = x - oldx;
-        this.h += oldy - y;
+        this.centerY = y;
+        this.w = x - oldCenterX;
+        this.h += oldCenterY - y;
         break;
       case RectangleShape.Left:
-        this.x = x;
-        this.w += oldx - x;
+        this.centerX = x;
+        this.w += oldCenterX - x;
         break;
       case RectangleShape.Right:
-        this.w = x - oldx;
+        this.w = x - oldCenterX;
         break;
       case RectangleShape.BottomLeft:
-        this.x = x;
-        this.w += oldx - x;
-        this.h = y - oldy;
+        this.centerX = x;
+        this.w += oldCenterX - x;
+        this.h = y - oldCenterY;
         break;
       case RectangleShape.Bottom:
-        this.h = y - oldy;
+        this.h = y - oldCenterY;
         break;
       case RectangleShape.BottomRight:
-        this.w = x - oldx;
-        this.h = y - oldy;
+        this.w = x - oldCenterX;
+        this.h = y - oldCenterY;
         break;
       // case Shape.RotateHandle:
       //   // set rotation
@@ -378,29 +382,29 @@ renderer.restore();
 
     // switch (expectResize) {
     //   case RectangleShape.TopLeft:
-    //     this.x = unRotatedX;
-    //     this.y = unRotatedY;
+    //     this.centerX = unRotatedX;
+    //     this.centerY = unRotatedY;
     //     this.w += oldx - unRotatedX;
     //     this.h += oldy - unRotatedY;
     //     break;
     //   case RectangleShape.Top:
-    //     this.y = unRotatedY;
+    //     this.centerY = unRotatedY;
     //     this.h += oldy - unRotatedY;
     //     break;
     //   case RectangleShape.TopRight:
-    //     this.y = unRotatedY;
+    //     this.centerY = unRotatedY;
     //     this.w = unRotatedX - oldx;
     //     this.h += oldy - unRotatedY;
     //     break;
     //   case RectangleShape.Left:
-    //     this.x = unRotatedX;
+    //     this.centerX = unRotatedX;
     //     this.w += oldx - unRotatedX;
     //     break;
     //   case RectangleShape.Right:
     //     this.w = unRotatedX - oldx;
     //     break;
     //   case RectangleShape.BottomLeft:
-    //     this.x = unRotatedX;
+    //     this.centerX = unRotatedX;
     //     this.w += oldx - unRotatedX;
     //     this.h = unRotatedY - oldy;
     //     break;
@@ -429,17 +433,17 @@ renderer.restore();
     // }
     // this.adjustSelectionHandles(context);
     // const bounds = context.canvas.getBoundingClientRect();
-    // if (this.x < bounds.left) {
-    //   this.x = bounds.left;
+    // if (this.centerX < bounds.left) {
+    //   this.centerX = bounds.left;
     // }
-    // if (this.x + this.w > bounds.right) {
-    //   this.x = bounds.right - this.w;
+    // if (this.centerX + this.w > bounds.right) {
+    //   this.centerX = bounds.right - this.w;
     // }
-    // if (this.y < bounds.top) {
-    //   this.y = bounds.top;
+    // if (this.centerY < bounds.top) {
+    //   this.centerY = bounds.top;
     // }
-    // if (this.y + this.h > bounds.bottom) {
-    //   this.y = bounds.bottom - this.h;
+    // if (this.centerY + this.h > bounds.bottom) {
+    //   this.centerY = bounds.bottom - this.h;
     // }
   }
 
@@ -453,32 +457,32 @@ renderer.restore();
   //     // 5  6  7
 
   //     // top left, middle, right
-  //     this.selectionHandles[RectangleShape.TopLeft].x = this.x - half;
-  //     this.selectionHandles[RectangleShape.TopLeft].y = this.y - half;
+  //     this.selectionHandles[RectangleShape.TopLeft].x = this.centerX - half;
+  //     this.selectionHandles[RectangleShape.TopLeft].y = this.centerY - half;
 
-  //     this.selectionHandles[RectangleShape.Top].x = this.x + this.w / 2 - half;
-  //     this.selectionHandles[RectangleShape.Top].y = this.y - half;
+  //     this.selectionHandles[RectangleShape.Top].x = this.centerX + this.w / 2 - half;
+  //     this.selectionHandles[RectangleShape.Top].y = this.centerY - half;
 
-  //     this.selectionHandles[RectangleShape.TopRight].x = this.x + this.w - half;
-  //     this.selectionHandles[RectangleShape.TopRight].y = this.y - half;
+  //     this.selectionHandles[RectangleShape.TopRight].x = this.centerX + this.w - half;
+  //     this.selectionHandles[RectangleShape.TopRight].y = this.centerY - half;
 
   //     //middle left
-  //     this.selectionHandles[RectangleShape.Left].x = this.x - half;
-  //     this.selectionHandles[RectangleShape.Left].y = this.y + this.h / 2 - half;
+  //     this.selectionHandles[RectangleShape.Left].x = this.centerX - half;
+  //     this.selectionHandles[RectangleShape.Left].y = this.centerY + this.h / 2 - half;
 
   //     //middle right
-  //     this.selectionHandles[RectangleShape.Right].x = this.x + this.w - half;
-  //     this.selectionHandles[RectangleShape.Right].y = this.y + this.h / 2 - half;
+  //     this.selectionHandles[RectangleShape.Right].x = this.centerX + this.w - half;
+  //     this.selectionHandles[RectangleShape.Right].y = this.centerY + this.h / 2 - half;
 
   //     //bottom left, middle, right
-  //     this.selectionHandles[RectangleShape.Bottom].x = this.x + this.w / 2 - half;
-  //     this.selectionHandles[RectangleShape.Bottom].y = this.y + this.h - half;
+  //     this.selectionHandles[RectangleShape.Bottom].x = this.centerX + this.w / 2 - half;
+  //     this.selectionHandles[RectangleShape.Bottom].y = this.centerY + this.h - half;
 
-  //     this.selectionHandles[RectangleShape.BottomLeft].x = this.x - half;
-  //     this.selectionHandles[RectangleShape.BottomLeft].y = this.y + this.h - half;
+  //     this.selectionHandles[RectangleShape.BottomLeft].x = this.centerX - half;
+  //     this.selectionHandles[RectangleShape.BottomLeft].y = this.centerY + this.h - half;
 
-  //     this.selectionHandles[RectangleShape.BottomRight].x = this.x + this.w - half;
-  //     this.selectionHandles[RectangleShape.BottomRight].y = this.y + this.h - half;
+  //     this.selectionHandles[RectangleShape.BottomRight].x = this.centerX + this.w - half;
+  //     this.selectionHandles[RectangleShape.BottomRight].y = this.centerY + this.h - half;
   //   }
   // } 
 
@@ -488,51 +492,57 @@ renderer.restore();
     // 3     4
     // 5  6  7
 
+    const halfWidth = this.w/2;
+    const halfHeight = this.h/2;
+
     // top left, middle, right
-    this.selectionHandles[RectangleShape.TopLeft].x = this.x;
-    this.selectionHandles[RectangleShape.TopLeft].y = this.y;
+    this.selectionHandles[RectangleShape.TopLeft].x = this.centerX - halfWidth;
+    this.selectionHandles[RectangleShape.TopLeft].y = this.centerY - halfHeight;
 
-    this.selectionHandles[RectangleShape.Top].x = this.x + this.w / 2;
-    this.selectionHandles[RectangleShape.Top].y = this.y;
+    this.selectionHandles[RectangleShape.Top].x = this.centerX;
+    this.selectionHandles[RectangleShape.Top].y = this.centerY - halfHeight;
 
-    this.selectionHandles[RectangleShape.TopRight].x = this.x + this.w;
-    this.selectionHandles[RectangleShape.TopRight].y = this.y;
+    this.selectionHandles[RectangleShape.TopRight].x = this.centerX + halfWidth;
+    this.selectionHandles[RectangleShape.TopRight].y = this.centerY - halfHeight;
 
     // middle left
-    this.selectionHandles[RectangleShape.Left].x = this.x;
-    this.selectionHandles[RectangleShape.Left].y = this.y + this.h / 2;
+    this.selectionHandles[RectangleShape.Left].x = this.centerX - halfWidth;
+    this.selectionHandles[RectangleShape.Left].y = this.centerY;
 
     // middle right
-    this.selectionHandles[RectangleShape.Right].x = this.x + this.w;
-    this.selectionHandles[RectangleShape.Right].y = this.y + this.h / 2;
+    this.selectionHandles[RectangleShape.Right].x = this.centerX + halfWidth;
+    this.selectionHandles[RectangleShape.Right].y = this.centerY;
 
     // bottom left, middle, right
-    this.selectionHandles[RectangleShape.BottomLeft].x = this.x;
-    this.selectionHandles[RectangleShape.BottomLeft].y = this.y + this.h;
+    this.selectionHandles[RectangleShape.BottomLeft].x = this.centerX - halfWidth;
+    this.selectionHandles[RectangleShape.BottomLeft].y = this.centerY + halfHeight;
 
-    this.selectionHandles[RectangleShape.Bottom].x = this.x + this.w / 2;
-    this.selectionHandles[RectangleShape.Bottom].y = this.y + this.h;
+    this.selectionHandles[RectangleShape.Bottom].x = this.centerX;
+    this.selectionHandles[RectangleShape.Bottom].y = this.centerY + halfHeight;
 
-    this.selectionHandles[RectangleShape.BottomRight].x = this.x + this.w;
-    this.selectionHandles[RectangleShape.BottomRight].y = this.y + this.h;
+    this.selectionHandles[RectangleShape.BottomRight].x = this.centerX + halfWidth; 
+    this.selectionHandles[RectangleShape.BottomRight].y = this.centerY + halfHeight;
 
-    this.selectionHandles[Shape.RotateHandle].x = this.x + this.w / 2;
-    this.selectionHandles[Shape.RotateHandle].y = this.y + this.h + 25;
+    this.selectionHandles[Shape.RotateHandle].x = this.centerX;
+    this.selectionHandles[Shape.RotateHandle].y = this.centerY + halfHeight + 25;
   }
 
   moveTo(x: number, y: number, context: DrawingContext): void {
     if (this.selectionHandles.length > 0) {
-      const moveX = x - this.selectionHandles[RectangleShape.TopLeft].x;
-      const moveY = y - this.selectionHandles[RectangleShape.TopLeft].y;
+      const moveX = x - this.centerX;
+      const moveY = y - this.centerY; 
       // console.log(x, y, moveX, moveY);
       for (const selectionHandle of this.selectionHandles) {
         selectionHandle.x += moveX;
         selectionHandle.y += moveY;
       }
+
+      this.centerX += moveX;
+      this.centerY += moveY;
     }
 
-    // this.x = x;
-    // this.y = y;
+    // this.centerX = x;
+    // this.centerY = y;
 
     // this.adjustSelectionHandles(context);
   }
