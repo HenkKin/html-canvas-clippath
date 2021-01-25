@@ -211,7 +211,7 @@ export class DrawingContext {
         } else {
           this.mousePointOffsetX = this.mousePoint.x - this.activeShape.centerX;
           this.mousePointOffsetY = this.mousePoint.y - this.activeShape.centerY;
-          this.activeShape.moveTo(
+          this.activeShape.moveShape(
             this.mousePoint.x - this.mousePointOffsetX,
             this.mousePoint.y - this.mousePointOffsetY,
             this
@@ -453,7 +453,7 @@ export class DrawingContext {
       // this.getMouse(e);
       this.canvas.style.cursor = "move";
 
-      this.activeShape.moveTo(
+      this.activeShape.moveShape(
         this.mousePoint.x - this.mousePointOffsetX,
         this.mousePoint.y - this.mousePointOffsetY,
         this
@@ -472,7 +472,7 @@ export class DrawingContext {
     } else if (this.isResizeDrag) {
       // this.getMouse(e);
 
-      this.activeShape.resize(
+      this.activeShape.resizeShape(
         this.mousePoint.x,
         this.mousePoint.y,
         this.expectResize,

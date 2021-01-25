@@ -1,45 +1,48 @@
 import { DrawingContext } from "../DrawingContext";
-import { Point } from "../Point";
 import { SelectionHandle } from "../SelectionHandle";
 
 export abstract class Shape {
   static Radian = Math.PI / 180;
   static RotateHandle = 8;
-
-  // private _x: number;
-  // private _y: number;
+  
   selectionHandles: SelectionHandle[] = [];
-  rotationHandle: SelectionHandle;
+  abstract get rotationHandleX(): number;
+  abstract get rotationHandleY(): number;
   mySelColor = "#CC0000";
   mySelWidth = 1;
-  mySelBoxColor = "darkred"; // New for selection boxes
+  mySelBoxColor = "darkred"; 
   mySelBoxSize = 18;
   rotationDegree = 0;
   shapePath: Path2D = new Path2D();
 
-  // public abstract get x(): number;
-  // public abstract get y(): number;
-  // public abstract get centerX(): number;
-  // public abstract get centerY(): number;
-
-  // public abstract get centerX(): number;
-  // public abstract get centerY(): number;
-  // public abstract set centerX(centerX: number);
-  // public abstract set centerY(centerY: number);
   public centerX: number;
   public centerY: number;
 
-  // public set x(x: number) {
-  //   this._x = x;
-  // }
-  // public set y(y: number) {
-  //   this._y = y;
-  // }
-
-  rotateCanvas(renderer: CanvasRenderingContext2D) {
+  protected rotateCanvas(renderer: CanvasRenderingContext2D) {
     renderer.translate(this.centerX, this.centerY); // translate to rectangle center
     renderer.rotate(Shape.Radian * this.rotationDegree); // rotate
     renderer.translate(-1 * this.centerX, -1 * this.centerY); // translate back
+  }
+
+  protected drawPoint(renderer: CanvasRenderingContext2D, x: number, y: number, color: string) : Path2D{
+    renderer.save();
+    const shapePath = new Path2D();
+    shapePath.arc(
+      x, // - this.mySelBoxSize,
+      y, // - this.mySelBoxSize,
+      this.mySelBoxSize / 2,
+      0,
+      2 * Math.PI,
+      false
+    );
+    shapePath.closePath();
+    renderer.fillStyle = color;
+    renderer.fill(shapePath);
+    renderer.lineWidth = 1;
+    renderer.strokeStyle = "#003300";
+    renderer.stroke(shapePath);
+    renderer.restore();
+    return shapePath;
   }
 
   public drawShape(
@@ -65,7 +68,7 @@ export abstract class Shape {
     // renderer.restore();
     if (context.activeShape === this) {
       // draw the boxes
-      renderer.restore();
+      //renderer.restore();
       renderer.save();
       this.rotateCanvas(renderer);
 
@@ -74,47 +77,18 @@ export abstract class Shape {
       for (let i = 0; i < this.selectionHandles.length; i++) {
         const cur = this.selectionHandles[i];
 
-        cur.shapePath = new Path2D();
-        cur.shapePath.arc(
-          cur.x, // - this.mySelBoxSize,
-          cur.y, // - this.mySelBoxSize,
-          this.mySelBoxSize / 2,
-          0,
-          2 * Math.PI,
-          false
-        );
-        cur.shapePath.closePath();
-
-        if (i === 0) {
-          renderer.fillStyle = "orange";
-        } else {
-          renderer.fillStyle = this.mySelBoxColor;
+        if(i === 1){
+          this.drawPoint(renderer, this.centerX, this.centerY + 20, 'blue')
         }
-        renderer.fill(cur.shapePath);
-        renderer.lineWidth = 1;
-        renderer.strokeStyle = "#003300";
-        renderer.stroke(cur.shapePath);
+        cur.shapePath = this.drawPoint(renderer, cur.x, cur.y, (i === 0) ? 'orange' : this.mySelBoxColor)
       }
 
-      renderer.save();
-      renderer.beginPath();
-      renderer.arc(
-        this.centerX, // - this.mySelBoxSize,
-        this.centerY, // - this.mySelBoxSize,
-        this.mySelBoxSize / 2,
-        0,
-        2 * Math.PI,
-        false
-      );
-      renderer.fillStyle = "yellow";
-      renderer.fill();
-      renderer.lineWidth = 1;
-      renderer.strokeStyle = "yellow";
-      renderer.stroke();
+      this.drawPoint(renderer, this.centerX, this.centerY, 'yellow')
+
       renderer.restore();
     }
 
-    renderer.restore();
+    // renderer.restore();
   }
 
   protected abstract draw(
@@ -123,14 +97,37 @@ export abstract class Shape {
     isGhostContext: boolean
   ): Path2D;
 
-  abstract resize(
+  
+  public resizeShape(
+    x: number,
+    y: number,
+    expectResize: number,
+    context: DrawingContext
+  ): void{
+    this.resize(x, y, expectResize, context)
+  }
+
+  protected abstract resize(
     x: number,
     y: number,
     expectResize: number,
     context: DrawingContext
   ): void;
 
-  abstract moveTo(x: number, y: number, context: DrawingContext): void;
+  public moveShape(x: number, y: number, context: DrawingContext): void {
+    if (this.selectionHandles.length > 0) {
+      const moveX = x - this.centerX;
+      const moveY = y - this.centerY;
+      // console.log(x, y, moveX, moveY);
+      for (const selectionHandle of this.selectionHandles) {
+        selectionHandle.x += moveX;
+        selectionHandle.y += moveY;
+      }
+    }
+
+    this.move(x,y ,context);
+  }
+  protected abstract move(x: number, y: number, context: DrawingContext): void;
 
   abstract getSelectionHandle(
     x: number,
@@ -149,7 +146,7 @@ export abstract class Shape {
   //   this._y = y;
   // }
 
-  setClipPath(clipPath: string, context: DrawingContext) {
+  public setClipPath(clipPath: string, context: DrawingContext) {
     console.log("setClipPath", clipPath);
     const imageWidth = context.canvas.width;
     const imageHeight = context.canvas.height;
@@ -174,7 +171,7 @@ export abstract class Shape {
     }
   }
 
-  getClipPath(context: DrawingContext) {
+  public getClipPath(context: DrawingContext) {
     let clipPath = "clip-path: polygon()";
 
     let i = 0;
@@ -202,7 +199,7 @@ export abstract class Shape {
     return clipPath;
   }
 
-  getInverseClipPath(context: DrawingContext) {
+  public getInverseClipPath(context: DrawingContext) {
     let clipPath = "clip-path: polygon()";
 
     let i = 0;
@@ -283,7 +280,7 @@ export abstract class Shape {
     return clipPath;
   }
 
-  calcArea(poly: SelectionHandle[]): number {
+  private calcArea(poly: SelectionHandle[]): number {
     if (!poly || poly.length < 3) {
       return null;
     }
@@ -296,7 +293,7 @@ export abstract class Shape {
     return sum;
   }
 
-  isClockwise(poly: SelectionHandle[]): boolean {
+  private isClockwise(poly: SelectionHandle[]): boolean {
     return this.calcArea(poly) > 0;
   }
 }

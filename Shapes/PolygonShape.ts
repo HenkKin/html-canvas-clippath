@@ -4,38 +4,23 @@ import { SelectionHandle } from "../SelectionHandle";
 import { Shape } from "../Shapes/Shape";
 
 export class PolygonShape extends Shape {
-  // fill = "#444444";
-  // mySelColor = "#CC0000";
-  // mySelWidth = 1;
-  // mySelBoxColor = "darkred"; // New for selection boxes
-  // mySelBoxSize = 12;
-  // selectionHandles: SelectionHandle[] = [];
 
-  // get x(): number {
-  //   return this.selectionHandles.length > 0 ? this.selectionHandles[0].x : 0;
-  // }
-  // get y(): number {
-  //   return this.selectionHandles.length > 0 ? this.selectionHandles[0].y : 0;
-  // }
-  // public get centerX(): number {
-  //   return this.x;
-  // }
-  // public get centerY(): number {
-  //   return this.y;
-  // }
+  get rotationHandleX(): number{
+    return ((this.selectionHandles[0].x + this.selectionHandles[1].x) / 2);
+  }
+  get rotationHandleY(): number{
+    return ((this.selectionHandles[0].y + this.selectionHandles[1].y) / 2);
+  }
+
   constructor() {
     super();
-    // for (var i = 0; i < 8; i++) {
-    //   var rect = new SelectionHandle();
-    //   this.selectionHandles.push(rect);
-    // }
-
-    // this.selectionHandles.
   }
+
   mousedown(x: number, y: number, context: DrawingContext): void {}
   mouseup(x: number, y: number, context: DrawingContext): void {}
   mousemove(x: number, y: number, context: DrawingContext): void {}
-  draw(
+
+  protected draw(
     renderer: CanvasRenderingContext2D,
     context: DrawingContext,
     isGhostContext: boolean
@@ -70,14 +55,6 @@ export class PolygonShape extends Shape {
     // if (this.x > WIDTH || this.y > HEIGHT) return;
     // if (this.x + this.w < 0 || this.y + this.h < 0) return;
 
-    // if (isGhostContext === true) {
-    //   renderer.fillRect(this.x, this.y, this.w, this.h);
-    // } else {
-    //   renderer.clearRect(this.x, this.y, this.w, this.h);
-    // }
-    // renderer.strokeStyle = this.mySelColor;
-    // renderer.lineWidth = this.mySelWidth;
-
     const path = new Path2D();
 
     path.moveTo(this.selectionHandles[0].x, this.selectionHandles[0].y);
@@ -88,44 +65,8 @@ export class PolygonShape extends Shape {
     path.closePath();
 
     renderer.fill(path);
-    // renderer.restore();
-    // renderer.stroke(path);
 
     return path;
-    // renderer.strokeStyle = this.mySelColor;
-    // renderer.lineWidth = this.mySelWidth;
-    // renderer.strokeRect(this.x, this.y, this.w, this.h);
-    // draw selection
-    // this is a stroke along the box and also 8 new selection handles
-    // if (context.activeShape === this) {
-    //   renderer.strokeStyle = this.mySelColor;
-    //   renderer.lineWidth = this.mySelWidth;
-    //   // renderer.strokeRect(this.x, this.y, this.w, this.h);
-
-    //   // // draw the boxes
-    //   // var half = this.mySelBoxSize / 2;
-
-    //   // renderer.fillStyle = this.mySelBoxColor;
-
-    //   // for (var i = 0; i < this.selectionHandles.length; i++) {
-    //   //   var cur = this.selectionHandles[i];
-
-    //   //   renderer.beginPath();
-    //   //   renderer.arc(
-    //   //     cur.x, // + this.mySelBoxSize,
-    //   //     cur.y, // + this.mySelBoxSize / 2,
-    //   //     this.mySelBoxSize / 2,
-    //   //     0,
-    //   //     2 * Math.PI,
-    //   //     false
-    //   //   );
-    //   //   renderer.fillStyle = "green";
-    //   //   renderer.fill();
-    //   //   renderer.lineWidth = 1;
-    //   //   renderer.strokeStyle = "#003300";
-    //   //   renderer.stroke();
-    //   // }
-    // }
   } // end draw
 
   getSelectionHandle(x: number, y: number, context: DrawingContext): number {
@@ -155,7 +96,7 @@ export class PolygonShape extends Shape {
     return expectResize;
   }
 
-  resize(x: number, y: number, expectResize: number, context: DrawingContext) {
+  protected resize(x: number, y: number, expectResize: number, context: DrawingContext) {
     // time ro resize!
     if (expectResize >= 0 && this.selectionHandles[expectResize]) {
       this.selectionHandles[expectResize].x = x;
@@ -163,15 +104,15 @@ export class PolygonShape extends Shape {
     }
   }
 
-  moveTo(x: number, y: number, context: DrawingContext): void {
-    if (this.selectionHandles.length > 0) {
-      const moveX = x - this.centerX;
-      const moveY = y - this.centerY;
-      // console.log(x, y, moveX, moveY);
-      for (const selectionHandle of this.selectionHandles) {
-        selectionHandle.x += moveX;
-        selectionHandle.y += moveY;
-      }
-    }
+  protected move(x: number, y: number, context: DrawingContext): void {
+    // if (this.selectionHandles.length > 0) {
+    //   const moveX = x - this.centerX;
+    //   const moveY = y - this.centerY;
+    //   // console.log(x, y, moveX, moveY);
+    //   for (const selectionHandle of this.selectionHandles) {
+    //     selectionHandle.x += moveX;
+    //     selectionHandle.y += moveY;
+    //   }
+    // }
   }
 }
