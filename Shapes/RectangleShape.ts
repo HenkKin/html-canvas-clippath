@@ -17,12 +17,13 @@ export class RectangleShape extends Shape {
   mouseup(x: number, y: number, context: DrawingContext): void { }
   mousemove(x: number, y: number, context: DrawingContext): void { }
 
-  get rotationHandleX(): number{
-    return (this.selectionHandles[RectangleShape.Top].x);
+ get rotationHandleX(): number {
+    return this.centerX;
   }
-  get rotationHandleY(): number{
-    return this.selectionHandles[RectangleShape.Top].y - 20;
+  get rotationHandleY(): number {
+    return this.centerY - 20;
   }
+
 
   getSelectionHandleX(selectionHandleIndex: number): number {
     if (this.selectionHandles.length > 0) {
@@ -44,7 +45,7 @@ export class RectangleShape extends Shape {
   constructor(x: number, y: number, w?: number, h?: number) {
     super();
 
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < 8; i++) {
       // 8 selection handles + 1 rotation handle
       const rect = new SelectionHandle(0, 0);
       this.selectionHandles.push(rect);
@@ -77,9 +78,7 @@ export class RectangleShape extends Shape {
     path.moveTo(this.selectionHandles[0].x, this.selectionHandles[0].y);
 
     for (const selectionHandle of this.selectionHandles.slice(1)) {
-      if (selectionHandle !== this.selectionHandles[Shape.RotateHandle]) {
-        path.lineTo(selectionHandle.x, selectionHandle.y);
-      }
+      path.lineTo(selectionHandle.x, selectionHandle.y);
     }
     path.closePath();
 
@@ -104,7 +103,7 @@ export class RectangleShape extends Shape {
 
   } // end draw
 
-  getSelectionHandle(x: number, y: number, context: DrawingContext): number {
+  getSelectionHandle(x: number, y: number, context: DrawingContext): SelectionHandle {
     let expectResize = -1;
     for (let i = 0; i < this.selectionHandles.length; i++) {
       // 0  1  2
@@ -127,7 +126,7 @@ export class RectangleShape extends Shape {
       ) {
         // we found one!
         expectResize = i;
-        context.invalidate();
+        context.invalidate();// TODO: is this nessessary?
 
         switch (i) {
           case RectangleShape.TopLeft:
@@ -190,23 +189,15 @@ export class RectangleShape extends Shape {
               context.canvas.style.cursor = 'se-resize';
             }
             break;
-          case Shape.RotateHandle:
-            context.canvas.style.cursor = 'grab';
-            break;
         }
       }
     }
- 
-    return expectResize;
+    if(expectResize > -1){
+        return this.selectionHandles[expectResize];
+    }
+    return null;
   }
 
-  private rotate(x, y, cx, cy, angle):number[] {
-    return [
-      (x - cx) * Math.cos(angle) - (y - cy) * Math.sin(angle) + cx,
-      (x - cx) * Math.sin(angle) + (y - cy) * Math.cos(angle) + cy,
-    ];
-  }
- 
   // thanks to https://shihn.ca/posts/2020/resizing-rotated-elements/
   private calculateNewOppositeHandlePosition(mousePointX: number, mousePointY: number, oppositeHandleX: number, oppositeHandleY: number, angle: number, isFixedWidth:boolean, isFixedHeight:boolean) {
     const center = [
@@ -242,7 +233,7 @@ export class RectangleShape extends Shape {
     return [newOppositeHandle[0], newOppositeHandle[1], newWidth, newHeight];
   }
   
-  protected resize(x: number, y: number, expectResize: number, context: DrawingContext) {
+  protected resize(x: number, y: number, selectionHandle: SelectionHandle, context: DrawingContext) {
     const renderer = context.renderer;
     this.drawPoint(renderer, x, y, 'blue');
 
@@ -259,6 +250,7 @@ export class RectangleShape extends Shape {
     const left = this.selectionHandles[RectangleShape.Left];
     const right = this.selectionHandles[RectangleShape.Right];
 
+    const expectResize = this.selectionHandles.indexOf(selectionHandle);
     let delta;
     switch (expectResize) {  
       case RectangleShape.TopLeft:
@@ -360,9 +352,6 @@ export class RectangleShape extends Shape {
 
     this.selectionHandles[RectangleShape.BottomRight].x = this.centerX + halfWidth; 
     this.selectionHandles[RectangleShape.BottomRight].y = this.centerY + halfHeight;
-
-    this.selectionHandles[Shape.RotateHandle].x = this.centerX;
-    this.selectionHandles[Shape.RotateHandle].y = this.centerY + halfHeight + 25;
   }
 
   protected move(x: number, y: number, context: DrawingContext): void {

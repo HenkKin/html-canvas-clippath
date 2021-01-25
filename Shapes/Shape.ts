@@ -3,14 +3,19 @@ import { SelectionHandle } from "../SelectionHandle";
 
 export abstract class Shape {
   static Radian = Math.PI / 180;
-  static RotateHandle = 8;
-  
+
   selectionHandles: SelectionHandle[] = [];
+  private _rotationSelectionHandle = new SelectionHandle(0, 0);
+  get rotationSelectionHandle(): SelectionHandle {
+    this._rotationSelectionHandle.x = this.rotationHandleX;
+    this._rotationSelectionHandle.y = this.rotationHandleY;
+    return this._rotationSelectionHandle;
+  }
   abstract get rotationHandleX(): number;
   abstract get rotationHandleY(): number;
   mySelColor = "#CC0000";
   mySelWidth = 1;
-  mySelBoxColor = "darkred"; 
+  mySelBoxColor = "darkred";
   mySelBoxSize = 18;
   rotationDegree = 0;
   shapePath: Path2D = new Path2D();
@@ -24,7 +29,12 @@ export abstract class Shape {
     renderer.translate(-1 * this.centerX, -1 * this.centerY); // translate back
   }
 
-  protected drawPoint(renderer: CanvasRenderingContext2D, x: number, y: number, color: string) : Path2D{
+  protected drawPoint(
+    renderer: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    color: string
+  ): Path2D {
     renderer.save();
     const shapePath = new Path2D();
     shapePath.arc(
@@ -77,18 +87,35 @@ export abstract class Shape {
       for (let i = 0; i < this.selectionHandles.length; i++) {
         const cur = this.selectionHandles[i];
 
-        if(i === 1){
-          this.drawPoint(renderer, this.centerX, this.centerY + 20, 'blue')
+        if (i === 1) {
+          this.drawPoint(
+            renderer,
+            this.rotationHandleX,
+            this.rotationHandleY,
+            "blue"
+          );
         }
-        cur.shapePath = this.drawPoint(renderer, cur.x, cur.y, (i === 0) ? 'orange' : this.mySelBoxColor)
+        cur.shapePath = this.drawPoint(
+          renderer,
+          cur.x,
+          cur.y,
+          i === 0 ? "orange" : this.mySelBoxColor
+        );
       }
 
-      this.drawPoint(renderer, this.centerX, this.centerY, 'yellow')
+      this.drawPoint(renderer, this.centerX, this.centerY, "yellow");
 
       renderer.restore();
     }
 
     // renderer.restore();
+  }
+
+  protected rotate(x, y, cx, cy, angle):number[] {
+    return [
+      (x - cx) * Math.cos(angle) - (y - cy) * Math.sin(angle) + cx,
+      (x - cx) * Math.sin(angle) + (y - cy) * Math.cos(angle) + cy,
+    ];
   }
 
   protected abstract draw(
@@ -97,20 +124,19 @@ export abstract class Shape {
     isGhostContext: boolean
   ): Path2D;
 
-  
   public resizeShape(
     x: number,
     y: number,
-    expectResize: number,
+    selectionHandle: SelectionHandle,
     context: DrawingContext
-  ): void{
-    this.resize(x, y, expectResize, context)
+  ): void {
+    this.resize(x, y, selectionHandle, context);
   }
 
   protected abstract resize(
     x: number,
     y: number,
-    expectResize: number,
+    selectionHandle: SelectionHandle,
     context: DrawingContext
   ): void;
 
@@ -125,7 +151,7 @@ export abstract class Shape {
       }
     }
 
-    this.move(x,y ,context);
+    this.move(x, y, context);
   }
   protected abstract move(x: number, y: number, context: DrawingContext): void;
 
@@ -133,7 +159,7 @@ export abstract class Shape {
     x: number,
     y: number,
     context: DrawingContext
-  ): number;
+  ): SelectionHandle;
 
   abstract mousedown(x: number, y: number, context: DrawingContext): void;
 
