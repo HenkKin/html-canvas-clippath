@@ -1,7 +1,7 @@
-import { DrawingContext } from "../DrawingContext";
-import { Point } from "../Point";
-import { SelectionHandle } from "../SelectionHandle";
-import { Shape } from "../Shapes/Shape";
+import { DrawingContext } from '../DrawingContext';
+import { Point } from '../Point';
+import { SelectionHandle } from '../SelectionHandle';
+import { Shape } from '../Shapes/Shape';
 
 export class PolygonShape extends Shape {
   get rotationHandleX(): number {
@@ -15,12 +15,12 @@ export class PolygonShape extends Shape {
     super();
   }
 
-  mousedown(x: number, y: number, context: DrawingContext): void {}
-  mouseup(x: number, y: number, context: DrawingContext): void {}
-  mousemove(x: number, y: number, context: DrawingContext): void {}
+  mousedown(x: number, y: number, context: DrawingContext): void { }
+  mouseup(x: number, y: number, context: DrawingContext): void { }
+  mousemove(x: number, y: number, context: DrawingContext): void { }
 
-private calculateCenter(): number[]{
-   let sumX = 0;
+  private calculateCenter(): number[] {
+    let sumX = 0;
     let sumY = 0;
     for (let i = 0; i < this.selectionHandles.length; i++) {
       sumX += this.selectionHandles[i].x;
@@ -30,7 +30,7 @@ private calculateCenter(): number[]{
     const centerX = sumX / this.selectionHandles.length;
     const centerY = sumY / this.selectionHandles.length;
     return [centerX, centerY];
-}
+  }
   protected draw(
     renderer: CanvasRenderingContext2D,
     context: DrawingContext,
@@ -105,7 +105,7 @@ private calculateCenter(): number[]{
       ) {
         // we found one!
         expectResize = i;
-        context.canvas.style.cursor = "move";
+        context.canvas.style.cursor = 'move';
         // context.invalidate();
       }
     }
@@ -118,13 +118,13 @@ private calculateCenter(): number[]{
 
   protected resize(
     x: number,
-    y: number, 
+    y: number,
     selectionHandle: SelectionHandle,
     context: DrawingContext
   ) {
     // time ro resize!
-    const renderer = context.renderer; 
-    this.drawPoint(renderer, x, y, "blue");
+    const renderer = context.renderer;
+    this.drawPoint(renderer, x, y, this.mySelWidth / 2, 'blue');
 
     const unrotatedX =
       (x - this.centerX) * Math.cos(Shape.Radian * -this.rotationDegree) -
@@ -163,57 +163,57 @@ private calculateCenter(): number[]{
 
     // rotate all handles
 
-//     this.selectionHandles.forEach(handle => {
+    //     this.selectionHandles.forEach(handle => {
 
-//  const oppositeHandle = this.rotate(handle.x, handle.y,this.centerX, this.centerY, Math.sin(Shape.Radian * this.rotationDegree));
-  
-//     const newOppositeHandle = this.rotate(
-//       oppositeHandle[0],
-//       oppositeHandle[1],
-//       newCenter[0],
-//       newCenter[1], 
-//       -angle
-//     );
-//     });
+    //  const oppositeHandle = this.rotate(handle.x, handle.y,this.centerX, this.centerY, Math.sin(Shape.Radian * this.rotationDegree));
 
-      // const unrotatedX =
-      //   (x - this.centerX) * Math.cos(Shape.Radian * -this.rotationDegree) -
-      //   (y - this.centerY) * Math.sin(Shape.Radian * -this.rotationDegree) +
-      //   this.centerX;
-      // const unrotatedY =
-      //   (x - this.centerX) * Math.sin(Shape.Radian * -this.rotationDegree) +
-      //   (y - this.centerY) * Math.cos(Shape.Radian * -this.rotationDegree) +
-      //   this.centerY;
+    //     const newOppositeHandle = this.rotate(
+    //       oppositeHandle[0],
+    //       oppositeHandle[1],
+    //       newCenter[0],
+    //       newCenter[1],
+    //       -angle
+    //     );
+    //     });
 
-      // const rotatedSelectionHandleX =
-      //   (x - this.centerX) * Math.cos(Shape.Radian * this.rotationDegree) -
-      //   (y - this.centerY) * Math.sin(Shape.Radian * this.rotationDegree) +
-      //   this.centerX;
+    // const unrotatedX =
+    //   (x - this.centerX) * Math.cos(Shape.Radian * -this.rotationDegree) -
+    //   (y - this.centerY) * Math.sin(Shape.Radian * -this.rotationDegree) +
+    //   this.centerX;
+    // const unrotatedY =
+    //   (x - this.centerX) * Math.sin(Shape.Radian * -this.rotationDegree) +
+    //   (y - this.centerY) * Math.cos(Shape.Radian * -this.rotationDegree) +
+    //   this.centerY;
 
-      // const rotatedSelectionHandleY =
-      //   (selectionHandle.x - this.centerX) * Math.sin(Shape.Radian * this.rotationDegree) +
-      //   (selectionHandle.y - this.centerY) * Math.cos(Shape.Radian * this.rotationDegree) +
-      //   this.centerY;
+    // const rotatedSelectionHandleX =
+    //   (x - this.centerX) * Math.cos(Shape.Radian * this.rotationDegree) -
+    //   (y - this.centerY) * Math.sin(Shape.Radian * this.rotationDegree) +
+    //   this.centerX;
 
-      // const offsetX = x - rotatedSelectionHandleX;
-      // const offsetY = y - rotatedSelectionHandleY;
+    // const rotatedSelectionHandleY =
+    //   (selectionHandle.x - this.centerX) * Math.sin(Shape.Radian * this.rotationDegree) +
+    //   (selectionHandle.y - this.centerY) * Math.cos(Shape.Radian * this.rotationDegree) +
+    //   this.centerY;
 
-      selectionHandle.x  = unrotatedX;
-      selectionHandle.y  = unrotatedY;
+    // const offsetX = x - rotatedSelectionHandleX;
+    // const offsetY = y - rotatedSelectionHandleY;
 
-      const newCenter = this.calculateCenter();
+    selectionHandle.x = unrotatedX;
+    selectionHandle.y = unrotatedY;
 
-      // const offsetCenterX = newCenter[0] - this.centerX;
-      // const offsetCenterY = newCenter[1] - this.centerY;
+    const newCenter = this.calculateCenter();
 
-      // this.selectionHandles.forEach(handle => {
-      //   if(handle !== selectionHandle){
-      //     handle.x -= offsetCenterX;
-      //     handle.y -= offsetCenterY;
-      //   }
-      // });
+    // const offsetCenterX = newCenter[0] - this.centerX;
+    // const offsetCenterY = newCenter[1] - this.centerY;
 
-     
+    // this.selectionHandles.forEach(handle => {
+    //   if(handle !== selectionHandle){
+    //     handle.x -= offsetCenterX;
+    //     handle.y -= offsetCenterY;
+    //   }
+    // });
+
+
     // // if (selectionHandle !== null) {
     // // const unrotatedMouseHandle = this.rotate(x, y, this.centerX, this.centerY, -this.rotationDegree * Shape.Radian);
     // const unrotatedMouseHandle = this.rotate(x, y, this.centerX, this.centerY, -this.rotationDegree * Shape.Radian);
@@ -223,8 +223,8 @@ private calculateCenter(): number[]{
 
     // selectionHandle.x = rotatedX;
     // selectionHandle.y = rotatedY;
-     this.drawPoint(renderer, selectionHandle.x,selectionHandle.y, "green");
-        context.invalidate();
+    this.drawPoint(renderer, selectionHandle.x, selectionHandle.y, this.mySelWidth / 2, 'green');
+    context.invalidate();
     // }
   }
 

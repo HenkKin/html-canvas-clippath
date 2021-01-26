@@ -1,5 +1,6 @@
-import { DrawingContext } from "../DrawingContext";
-import { SelectionHandle } from "../SelectionHandle";
+import { decimalDigest } from '@angular/compiler/src/i18n/digest';
+import { DrawingContext } from '../DrawingContext';
+import { SelectionHandle } from '../SelectionHandle';
 
 export abstract class Shape {
   static Radian = Math.PI / 180;
@@ -13,9 +14,9 @@ export abstract class Shape {
   }
   abstract get rotationHandleX(): number;
   abstract get rotationHandleY(): number;
-  mySelColor = "#CC0000";
+  mySelColor = '#CC0000';
   mySelWidth = 1;
-  mySelBoxColor = "darkred";
+  mySelBoxColor = 'darkred';
   mySelBoxSize = 18;
   rotationDegree = 0;
   shapePath: Path2D = new Path2D();
@@ -50,7 +51,7 @@ export abstract class Shape {
     renderer.fillStyle = color;
     renderer.fill(shapePath);
     renderer.lineWidth = 1;
-    renderer.strokeStyle = "#003300";
+    renderer.strokeStyle = '#003300';
     renderer.stroke(shapePath);
     renderer.restore();
     return shapePath;
@@ -90,9 +91,9 @@ export abstract class Shape {
     this.rotateCanvas(renderer);
     renderer.save();
     if (isGhostContext === true) {
-      renderer.fillStyle = "black"; // always want black for the ghost canvas
+      renderer.fillStyle = 'black'; // always want black for the ghost canvas
     } else {
-      renderer.globalCompositeOperation = "destination-out";
+      renderer.globalCompositeOperation = 'destination-out';
       // context.fillStyle = this.fill;
     }
     // renderer.save();
@@ -104,12 +105,12 @@ export abstract class Shape {
     // renderer.restore();
     if (context.activeShape === this) {
       // draw the boxes
-      //renderer.restore();
+      // renderer.restore();
       renderer.save();
       this.rotateCanvas(renderer);
 
       renderer.fillStyle = this.mySelBoxColor;
-      this.drawCircel(renderer, this.centerX, this.centerY, 20,"silver");
+      this.drawCircel(renderer, this.centerX, this.centerY, 20, 'silver');
       // this.drawPoint(renderer, this.centerX, this.centerY, 2,"black");
       for (let i = 0; i < this.selectionHandles.length; i++) {
         const cur = this.selectionHandles[i];
@@ -120,7 +121,7 @@ export abstract class Shape {
             this.rotationHandleX,
             this.rotationHandleY,
             this.mySelBoxSize / 2,
-            "blue"
+            'blue'
           );
         }
         cur.shapePath = this.drawPoint(
@@ -128,8 +129,8 @@ export abstract class Shape {
           cur.x,
           cur.y,
           this.mySelBoxSize / 2,
-          this.mySelBoxColor
-          // i === 0 ? "orange" : this.mySelBoxColor
+          // this.mySelBoxColor
+          i === 0 ? 'orange' : this.mySelBoxColor
         );
       }
 
@@ -141,7 +142,7 @@ export abstract class Shape {
     // renderer.restore();
   }
 
-  protected rotate(x, y, cx, cy, angle):number[] {
+  protected rotate(x, y, cx, cy, angle): number[] {
     return [
       (x - cx) * Math.cos(angle) - (y - cy) * Math.sin(angle) + cx,
       (x - cx) * Math.sin(angle) + (y - cy) * Math.cos(angle) + cy,
@@ -203,22 +204,25 @@ export abstract class Shape {
   // }
 
   public setClipPath(clipPath: string, context: DrawingContext) {
-    console.log("setClipPath", clipPath);
+    console.log('setClipPath', context.canvas.width, context.canvas.height, clipPath);
     const imageWidth = context.canvas.width;
     const imageHeight = context.canvas.height;
-    const rx_validate = /^[ ]*[p|P]{1}olygon[ ]*\((?<points>(?<point>[-0-9% ]+,?)*)*[ ]*\)$/;
+    const rx_validate = /^[ ]*[p|P]{1}olygon[ ]*\((?<points>(?<point>[-.0-9% ]+,?)*)*[ ]*\)$/;
     const rx_extract = /([^ Ppolygon(),]+)\,? ([^,)]+)*/g;
     let m: RegExpExecArray;
     if (rx_validate.test(clipPath)) {
       this.selectionHandles = [];
-      console.log("setClipPath", clipPath);
+      // console.log('setClipPath', clipPath);
 
+      let i = 0;
       while ((m = rx_extract.exec(clipPath.substr(1)))) {
-        let x = parseInt(m[1].replace(" ", "").replace("%", ""), 10);
-        let y = parseInt(m[2].replace(" ", "").replace("%", ""), 10);
-        x = Math.round((x / 100) * imageWidth);
-        y = Math.round((y / 100) * imageHeight);
+        let x = parseFloat(m[1].replace(' ', '').replace('%', ''));
+        let y = parseFloat(m[2].replace(' ', '').replace('%', ''));
+        x = this.round(x * imageWidth / 100, 3);
+        y = this.round(y * imageHeight / 100, 3);
         this.selectionHandles.push(new SelectionHandle(x, y));
+        console.log('handle', i, x, y);
+        i++;
       }
 
       // TODO: calculate rotationDegree
@@ -227,39 +231,46 @@ export abstract class Shape {
     }
   }
 
+  private round(val: number, decimals: number): number {
+    return val;
+    // return +(val.toFixed(decimals));
+  }
+
   public getClipPath(context: DrawingContext) {
-    let clipPath = "clip-path: polygon()";
+    let clipPath = 'clip-path: polygon()';
 
     let i = 0;
-    let paths = "";
+    let paths = '';
 
     const imageWidth = context.canvas.width;
     const imageHeight = context.canvas.height;
 
     for (const point of this.selectionHandles) {
-      const x = Math.round((point.x / imageWidth) * 100) + "%";
-      const y = Math.round((point.y / imageHeight) * 100) + "%";
+
+      const rotatedPoint = this.rotate(point.x, point.y, this.centerX, this.centerY, this.rotationDegree * Shape.Radian);
+      const x = this.round((rotatedPoint[0] / imageWidth) * 100, 3) + '%';
+      const y = this.round((rotatedPoint[1] / imageHeight) * 100, 3) + '%';
 
       if (i === this.selectionHandles.length - 1) {
         // last coordinate to add, omits a comma at the end
-        paths += x + " " + y;
+        paths += x + ' ' + y;
       } else {
         // loops through each coordinate and adds it to a list to add
-        paths += x + " " + y + ", ";
+        paths += x + ' ' + y + ', ';
       }
       i++;
     }
 
-    clipPath = "polygon(" + paths + ")";
-
+    clipPath = 'polygon(' + paths + ')';
+    // console.log('getClipPath', this.rotationDegree, clipPath);
     return clipPath;
   }
 
   public getInverseClipPath(context: DrawingContext) {
-    let clipPath = "clip-path: polygon()";
+    let clipPath = 'clip-path: polygon()';
 
     let i = 0;
-    let paths = "";
+    let paths = '';
 
     const imageWidth = context.canvas.width;
     const imageHeight = context.canvas.height;
@@ -267,20 +278,23 @@ export abstract class Shape {
     const allPoints = this.selectionHandles;
 
     for (const point of allPoints) {
-      const x = Math.round((point.x / imageWidth) * 100) + "%";
-      const y = Math.round((point.y / imageHeight) * 100) + "%";
+      const rotatedPoint = this.rotate(point.x, point.y, this.centerX, this.centerY, this.rotationDegree * Shape.Radian);
+      const x = this.round((rotatedPoint[0] / imageWidth) * 100, 3) + '%';
+      const y = this.round((rotatedPoint[1] / imageHeight) * 100, 3) + '%';
 
       if (i === allPoints.length - 1) {
-        paths += x + " " + y + ", ";
+        paths += x + ' ' + y + ', ';
 
         // make inverse
         // add start point as last point to close the figure
         const startPoint = allPoints[0];
+        const rotatedStartPoint = this.rotate(startPoint.x, startPoint.y, this.centerX, this.centerY, this.rotationDegree * Shape.Radian);
+
         const startPointX =
-          Math.round((allPoints[0].x / imageWidth) * 100) + "%";
+          this.round((rotatedStartPoint[0] / imageWidth) * 100, 3) + '%';
         const startPointY =
-          Math.round((allPoints[0].y / imageHeight) * 100) + "%";
-        paths += startPointX + " " + startPointY + ", ";
+          this.round((rotatedStartPoint[1] / imageHeight) * 100, 3) + '%';
+        paths += startPointX + ' ' + startPointY + ', ';
 
         // define corners
         const leftTopCorner = new SelectionHandle(0, 0);
@@ -313,25 +327,25 @@ export abstract class Shape {
 
         for (let index = 0; index < cornersInDirectionOrder.length; index++) {
           const corner = cornersInDirectionOrder[index];
-          const cornerX = Math.round((corner.x / imageWidth) * 100) + "%";
-          const cornerY = Math.round((corner.y / imageHeight) * 100) + "%";
-          paths += cornerX + " " + cornerY + ", ";
+          const cornerX = this.round((corner.x / imageWidth) * 100, 3) + '%';
+          const cornerY = this.round((corner.y / imageHeight) * 100, 3) + '%';
+          paths += cornerX + ' ' + cornerY + ', ';
         }
 
         const firstCornerInDirectionOrderX =
-          Math.round((cornersInDirectionOrder[0].x / imageWidth) * 100) + "%";
+          this.round((cornersInDirectionOrder[0].x / imageWidth) * 100, 3) + '%';
         const firstCornerInDirectionOrderY =
-          Math.round((cornersInDirectionOrder[0].y / imageHeight) * 100) + "%";
+          this.round((cornersInDirectionOrder[0].y / imageHeight) * 100, 3) + '%';
         paths +=
-          firstCornerInDirectionOrderX + " " + firstCornerInDirectionOrderY;
+          firstCornerInDirectionOrderX + ' ' + firstCornerInDirectionOrderY;
       } else {
         // loops through each coordinate and adds it to a list to add
-        paths += x + " " + y + ", ";
+        paths += x + ' ' + y + ', ';
       }
       i++;
     }
 
-    clipPath = "polygon(" + paths + ")";
+    clipPath = 'polygon(' + paths + ')';
 
     return clipPath;
   }
@@ -351,5 +365,12 @@ export abstract class Shape {
 
   private isClockwise(poly: SelectionHandle[]): boolean {
     return this.calcArea(poly) > 0;
+  }
+
+  protected calculateDistance(x1: number, y1: number, x2: number, y2: number): number {
+    const a = x1 - x2;
+    const b = y1 - y2;
+
+    return Math.sqrt(a * a + b * b);
   }
 }

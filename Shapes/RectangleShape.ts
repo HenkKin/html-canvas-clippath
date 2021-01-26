@@ -17,7 +17,7 @@ export class RectangleShape extends Shape {
   mouseup(x: number, y: number, context: DrawingContext): void { }
   mousemove(x: number, y: number, context: DrawingContext): void { }
 
- get rotationHandleX(): number {
+  get rotationHandleX(): number {
     return this.centerX;
   }
   get rotationHandleY(): number {
@@ -53,18 +53,55 @@ export class RectangleShape extends Shape {
 
     this.w = w ?? 0;
     this.h = h ?? 0;
-    this.centerX = x + (this.w/2);
-    this.centerY = y + (this.h/2);
+    this.centerX = x + (this.w / 2);
+    this.centerY = y + (this.h / 2);
     this.adjustSelectionHandles();
   }
 
   setClipPath(clipPath: string, context: DrawingContext) {
     super.setClipPath(clipPath, context);
 
-    this.w = (this.getSelectionHandleX(RectangleShape.TopRight) - this.centerX) * 2;
-    this.h = (this.getSelectionHandleY(RectangleShape.BottomLeft) - this.centerY) * 2;
+    // calculate rotation
+    // const aanliggendeZijde = (this.getSelectionHandleX(RectangleShape.TopRight) - this.getSelectionHandleX(RectangleShape.TopLeft));
+    // const overstaandeZijde = (this.getSelectionHandleY(RectangleShape.TopRight) - this.getSelectionHandleY(RectangleShape.TopLeft));
+    // const rotationDegree = (Math.tan(overstaandeZijde / aanliggendeZijde) / Shape.Radian);
+    // if (rotationDegree > 0) {
+    //   this.rotationDegree = 360 - rotationDegree;
+    // } else {
+    // this.rotationDegree = rotationDegree;
+    // }
+    // console.log(this.rotationDegree, aanliggendeZijde, overstaandeZijde);
 
-    this.adjustSelectionHandles();
+    this.centerX = ((this.getSelectionHandleX(RectangleShape.Left) + this.getSelectionHandleX(RectangleShape.Right)) / 2);
+    this.centerY = ((this.getSelectionHandleY(RectangleShape.Top) + this.getSelectionHandleY(RectangleShape.Bottom)) / 2);
+
+    // const unrotatedTopLeft = this.rotate(this.getSelectionHandleX(RectangleShape.TopLeft), this.getSelectionHandleY(RectangleShape.TopLeft), this.centerX, this.centerY, -this.rotationDegree * Shape.Radian);
+    // const unrotatedBottomRight = this.rotate(this.getSelectionHandleX(RectangleShape.BottomRight), this.getSelectionHandleY(RectangleShape.BottomRight), this.centerX, this.centerY, -this.rotationDegree * Shape.Radian);
+
+    this.w = this.calculateDistance(this.getSelectionHandleX(RectangleShape.Left), this.getSelectionHandleY(RectangleShape.Left), this.getSelectionHandleX(RectangleShape.Right), this.getSelectionHandleY(RectangleShape.Right));
+    this.h = this.calculateDistance(this.getSelectionHandleX(RectangleShape.Top), this.getSelectionHandleY(RectangleShape.Top), this.getSelectionHandleX(RectangleShape.Bottom), this.getSelectionHandleY(RectangleShape.Bottom));
+
+
+    const angleFromRotationhandleToCenter = Math.atan2(
+      this.rotationHandleY -
+      this.centerY,
+      this.rotationHandleX -
+      this.centerX
+    );
+    /// TODO deze hoek is nog niet goed
+    const angleFromMouseToCenter = Math.atan2(
+      this.getSelectionHandleY(RectangleShape.TopLeft) - this.centerY,
+      this.getSelectionHandleX(RectangleShape.TopLeft) - this.centerX
+    );
+
+    const rotationDegree = ((angleFromMouseToCenter - angleFromRotationhandleToCenter) * 180) /
+      Math.PI;
+    this.rotationDegree = rotationDegree;
+    // this.h = unrotatedBottomRight[1] - unrotatedTopLeft[1];
+    console.log(this.rotationDegree, this.w, this.h);
+    // console.log(this.rotationDegree, aanliggendeZijde, overstaandeZijde, this.w, this.h);
+
+    // this.adjustSelectionHandles();
   }
 
   protected draw(
@@ -111,14 +148,14 @@ export class RectangleShape extends Shape {
       // 5  6  7
       // console.log(i);
       const cur = this.selectionHandles[i];
-      const rotatedX = (cur.x-this.centerX)*Math.cos(Shape.Radian * this.rotationDegree)-(cur.y-this.centerY)*Math.sin(Shape.Radian *this.rotationDegree)+this.centerX;
-      const rotatedY=  (cur.x-this.centerX)*Math.sin(Shape.Radian * this.rotationDegree)+(cur.y-this.centerY)*Math.cos(Shape.Radian *this.rotationDegree)+this.centerY;
+      const rotatedX = (cur.x - this.centerX) * Math.cos(Shape.Radian * this.rotationDegree) - (cur.y - this.centerY) * Math.sin(Shape.Radian * this.rotationDegree) + this.centerX;
+      const rotatedY = (cur.x - this.centerX) * Math.sin(Shape.Radian * this.rotationDegree) + (cur.y - this.centerY) * Math.cos(Shape.Radian * this.rotationDegree) + this.centerY;
 
       // we dont need to use the ghost context because
       // selection handles will always be rectangles
       // this.rotateCanvas(context);
       // if (context.renderer.isPointInPath(cur.shapePath, x, y)
-      if(
+      if (
         x >= rotatedX - this.mySelBoxSize / 2 &&
         x <= rotatedX + this.mySelBoxSize / 2 &&
         y >= rotatedY - this.mySelBoxSize / 2 &&
@@ -126,7 +163,7 @@ export class RectangleShape extends Shape {
       ) {
         // we found one!
         expectResize = i;
-        //context.invalidate();// TODO: is this nessessary?
+        context.invalidate();
 
         switch (i) {
           case RectangleShape.TopLeft:
@@ -192,32 +229,32 @@ export class RectangleShape extends Shape {
         }
       }
     }
-    if(expectResize > -1){
-        return this.selectionHandles[expectResize];
+    if (expectResize > -1) {
+      return this.selectionHandles[expectResize];
     }
     return null;
   }
 
   // thanks to https://shihn.ca/posts/2020/resizing-rotated-elements/
-  private calculateNewOppositeHandlePosition(mousePointX: number, mousePointY: number, oppositeHandleX: number, oppositeHandleY: number, angle: number, isFixedWidth:boolean, isFixedHeight:boolean) {
+  private calculateNewOppositeHandlePosition(mousePointX: number, mousePointY: number, oppositeHandleX: number, oppositeHandleY: number, angle: number, isFixedWidth: boolean, isFixedHeight: boolean) {
     const center = [
       this.centerX,
       this.centerY
     ];
 
     const unRotatedMouseHandle = this.rotate(mousePointX, mousePointY, center[0], center[1], -angle);
-    const newRotatedMouseHandle = this.rotate(isFixedWidth ? oppositeHandleX: unRotatedMouseHandle[0], isFixedHeight ? oppositeHandleY : unRotatedMouseHandle[1], center[0], center[1], angle);
-    
+    const newRotatedMouseHandle = this.rotate(isFixedWidth ? oppositeHandleX : unRotatedMouseHandle[0], isFixedHeight ? oppositeHandleY : unRotatedMouseHandle[1], center[0], center[1], angle);
+
     const oppositeHandle = this.rotate(oppositeHandleX, oppositeHandleY, center[0], center[1], angle);
     const newCenter = [
       (oppositeHandle[0] + newRotatedMouseHandle[0]) / 2,
-      (oppositeHandle[1] + newRotatedMouseHandle[1]) / 2, 
+      (oppositeHandle[1] + newRotatedMouseHandle[1]) / 2,
     ];
     const newOppositeHandle = this.rotate(
       oppositeHandle[0],
       oppositeHandle[1],
       newCenter[0],
-      newCenter[1], 
+      newCenter[1],
       -angle
     );
     const newHandle = this.rotate(
@@ -232,13 +269,13 @@ export class RectangleShape extends Shape {
     const newHeight = newHandle[1] - newOppositeHandle[1];
     return [newOppositeHandle[0], newOppositeHandle[1], newWidth, newHeight];
   }
-  
+
   protected resize(x: number, y: number, selectionHandle: SelectionHandle, context: DrawingContext) {
     const renderer = context.renderer;
-    this.drawPoint(renderer, x, y, 'blue');
+    this.drawPoint(renderer, x, y, this.mySelBoxSize / 2, 'blue');
 
     // 0  1  2
-    // 7     3 
+    // 7     3
     // 6  5  4
     //    8
     const topLeft = this.selectionHandles[RectangleShape.TopLeft];
@@ -252,63 +289,63 @@ export class RectangleShape extends Shape {
 
     const expectResize = this.selectionHandles.indexOf(selectionHandle);
     let delta;
-    switch (expectResize) {  
+    switch (expectResize) {
       case RectangleShape.TopLeft:
         delta = this.calculateNewOppositeHandlePosition(x, y, bottomRight.x, bottomRight.y, this.rotationDegree * Shape.Radian, false, false);
-        this.centerX = (delta[0] + delta[2]/2);
-        this.centerY = (delta[1] + delta[3]/2);
+        this.centerX = (delta[0] + delta[2] / 2);
+        this.centerY = (delta[1] + delta[3] / 2);
         this.w = delta[2] * -1;
         this.h = delta[3] * -1;
         break;
 
       case RectangleShape.Top:
-        delta = this.calculateNewOppositeHandlePosition(x, y, bottom.x, bottom.y, this.rotationDegree * Shape.Radian, true, false); 
-        this.centerX = (delta[0] + delta[2]/2);
-        this.centerY = (delta[1] + delta[3]/2);
+        delta = this.calculateNewOppositeHandlePosition(x, y, bottom.x, bottom.y, this.rotationDegree * Shape.Radian, true, false);
+        this.centerX = (delta[0] + delta[2] / 2);
+        this.centerY = (delta[1] + delta[3] / 2);
         this.h = delta[3] * -1;
         break;
 
       case RectangleShape.TopRight:
         delta = this.calculateNewOppositeHandlePosition(x, y, bottomLeft.x, bottomLeft.y, this.rotationDegree * Shape.Radian, false, false);
-        this.centerX = (delta[0] + delta[2]/2);
-        this.centerY = (delta[1] + delta[3]/2);
+        this.centerX = (delta[0] + delta[2] / 2);
+        this.centerY = (delta[1] + delta[3] / 2);
         this.w = delta[2];
         this.h = delta[3] * -1;
         break;
 
       case RectangleShape.Left:
-        delta = this.calculateNewOppositeHandlePosition(x, y, right.x, right.y, this.rotationDegree * Shape.Radian, false, true); 
-        this.centerX = (delta[0] + delta[2]/2);
-        this.centerY = (delta[1] + delta[3]/2);
-        this.w = delta[2]*-1;
+        delta = this.calculateNewOppositeHandlePosition(x, y, right.x, right.y, this.rotationDegree * Shape.Radian, false, true);
+        this.centerX = (delta[0] + delta[2] / 2);
+        this.centerY = (delta[1] + delta[3] / 2);
+        this.w = delta[2] * -1;
         break;
 
       case RectangleShape.Right:
-        delta = this.calculateNewOppositeHandlePosition(x, y, left.x, left.y, this.rotationDegree * Shape.Radian, false, true); 
-        this.centerX = (delta[0] + delta[2]/2);
-        this.centerY = (delta[1] + delta[3]/2);
+        delta = this.calculateNewOppositeHandlePosition(x, y, left.x, left.y, this.rotationDegree * Shape.Radian, false, true);
+        this.centerX = (delta[0] + delta[2] / 2);
+        this.centerY = (delta[1] + delta[3] / 2);
         this.w = delta[2];
         break;
 
       case RectangleShape.BottomLeft:
         delta = this.calculateNewOppositeHandlePosition(x, y, topRight.x, topRight.y, this.rotationDegree * Shape.Radian, false, false);
-        this.centerX = (delta[0] + delta[2]/2);
-        this.centerY = (delta[1] + delta[3]/2);
+        this.centerX = (delta[0] + delta[2] / 2);
+        this.centerY = (delta[1] + delta[3] / 2);
         this.w = delta[2] * -1;
         this.h = delta[3];
         break;
 
       case RectangleShape.Bottom:
-        delta = this.calculateNewOppositeHandlePosition(x, y, top.x, top.y, this.rotationDegree * Shape.Radian, true, false); 
-        this.centerX = (delta[0] + delta[2]/2);
-        this.centerY = (delta[1] + delta[3]/2);
+        delta = this.calculateNewOppositeHandlePosition(x, y, top.x, top.y, this.rotationDegree * Shape.Radian, true, false);
+        this.centerX = (delta[0] + delta[2] / 2);
+        this.centerY = (delta[1] + delta[3] / 2);
         this.h = delta[3];
         break;
 
       case RectangleShape.BottomRight:
         delta = this.calculateNewOppositeHandlePosition(x, y, topLeft.x, topLeft.y, this.rotationDegree * Shape.Radian, false, false);
-        this.centerX = (delta[0] + delta[2]/2);
-        this.centerY = (delta[1] + delta[3]/2);
+        this.centerX = (delta[0] + delta[2] / 2);
+        this.centerY = (delta[1] + delta[3] / 2);
         this.w = delta[2];
         this.h = delta[3];
         break;
@@ -322,12 +359,12 @@ export class RectangleShape extends Shape {
     // 0  1  2
     // 7     3
     // 6  5  4
-    const halfWidth = this.w/2;
-    const halfHeight = this.h/2;
+    const halfWidth = this.w / 2;
+    const halfHeight = this.h / 2;
 
     // top left, middle, right
     this.selectionHandles[RectangleShape.TopLeft].x = this.centerX - halfWidth;
-    this.selectionHandles[RectangleShape.TopLeft].y = this.centerY - halfHeight; 
+    this.selectionHandles[RectangleShape.TopLeft].y = this.centerY - halfHeight;
 
     this.selectionHandles[RectangleShape.Top].x = this.centerX;
     this.selectionHandles[RectangleShape.Top].y = this.centerY - halfHeight;
@@ -350,7 +387,7 @@ export class RectangleShape extends Shape {
     this.selectionHandles[RectangleShape.Bottom].x = this.centerX;
     this.selectionHandles[RectangleShape.Bottom].y = this.centerY + halfHeight;
 
-    this.selectionHandles[RectangleShape.BottomRight].x = this.centerX + halfWidth; 
+    this.selectionHandles[RectangleShape.BottomRight].x = this.centerX + halfWidth;
     this.selectionHandles[RectangleShape.BottomRight].y = this.centerY + halfHeight;
   }
 
@@ -359,7 +396,7 @@ export class RectangleShape extends Shape {
     this.centerY = y;
     // if (this.selectionHandles.length > 0) {
     //   const moveX = x - this.centerX;
-    //   const moveY = y - this.centerY; 
+    //   const moveY = y - this.centerY;
 
     //   this.centerX += moveX;
     //   this.centerY += moveY;
