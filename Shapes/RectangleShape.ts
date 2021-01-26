@@ -21,7 +21,7 @@ export class RectangleShape extends Shape {
     return this.centerX;
   }
   get rotationHandleY(): number {
-    return this.centerY - 20;
+    return this.centerY + 20;
   }
 
 
@@ -126,7 +126,7 @@ export class RectangleShape extends Shape {
       ) {
         // we found one!
         expectResize = i;
-        context.invalidate();// TODO: is this nessessary?
+        //context.invalidate();// TODO: is this nessessary?
 
         switch (i) {
           case RectangleShape.TopLeft:

@@ -154,7 +154,7 @@ export class DrawingContext {
     // // add a smaller purple rectangle
     // this.addRect(45, 60, 25, 25, 'rgba(150,150,250,0.7)');
 
-    this.addPolygonShape("rgba(150,150,250,0.7)");
+    // this.addPolygonShape("rgba(150,150,250,0.7)");
   }
   // Happens when the mouse is clicked in the canvas
   myDown(e: MouseEvent) {
@@ -172,11 +172,9 @@ export class DrawingContext {
       e.stopPropagation();
       return;
     }
-      console.log('activeShape',this.activeShape, this.selectedSelectionHandle, this.selectedSelectionHandle === this.activeShape.rotationSelectionHandle);
-
     // we are over a selection box
     if (this.activeShape !== null && this.selectedSelectionHandle !== null) {
-      console.log('selectedSelect',this.selectedSelectionHandle, this.selectedSelectionHandle === this.activeShape.rotationSelectionHandle);
+      // console.log('selectedSelect',this.selectedSelectionHandle, this.selectedSelectionHandle === this.activeShape.rotationSelectionHandle);
       if (this.selectedSelectionHandle === this.activeShape.rotationSelectionHandle) {
         this.isRotate = true;
       } else {
@@ -201,23 +199,23 @@ export class DrawingContext {
       shapesToDraw[i].drawShape(this.ghostRenderer, this, true);
 
       // get image data at the mouse x,y pixel
-      // const imageData = this.ghostRenderer.getImageData(
-      //   this.mousePoint.x,
-      //   this.mousePoint.y,
-      //   1,
-      //   1
-      // );
+      const imageData = this.ghostRenderer.getImageData(
+        this.mousePoint.x,
+        this.mousePoint.y,
+        1,
+        1
+      );
       // var index = (mousePoint.x + mousePoint.y * imageData.width) * 4;
       // console.log(imageData.data);
       // if the mouse pixel exists, select and break
-      // if (imageData.data[3] > 0) {
-      if (
-        this.ghostRenderer.isPointInPath(
-          shapesToDraw[i].shapePath,
-          this.mousePoint.x,
-          this.mousePoint.y
-        )
-      ) {
+      if (imageData.data[3] > 0) {
+      // if (
+      //   this.ghostRenderer.isPointInPath(
+      //     shapesToDraw[i].shapePath,
+      //     this.mousePoint.x,
+      //     this.mousePoint.y
+      //   )
+      // ) {
         this.activeShape = shapesToDraw[i];
         if (e.ctrlKey === true) {
           this.shapes = this.shapes.filter(s => s !== this.activeShape);
@@ -407,13 +405,13 @@ export class DrawingContext {
       let current: Shape = null;
       for (let i = 0; i < l; i++) {
         if (this.activeShape !== this.shapes[i]) {
-          this.shapes[i].drawShape(this.renderer, this, false); // we used to call drawshape, but now each box draws itself
+          this.shapes[i].drawShape(this.renderer, this, false); 
         } else {
           current = this.shapes[i];
         }
       }
       if (current !== null) {
-        current.drawShape(this.renderer, this, false); // we used to call drawshape, but now each box draws itself
+        current.drawShape(this.renderer, this, false); 
       }
       // Add stuff you want drawn on top all the time here
 
@@ -527,8 +525,8 @@ export class DrawingContext {
       );
       if (this.selectedSelectionHandle === null) {
         //const cur = this.activeShape.rotationSelectionHandle;
-          const rotatedX = (this.activeShape.rotationHandleX-this.activeShape.centerX)*Math.cos(Shape.Radian * this.activeShape.rotationDegree)-(this.activeShape.rotationHandleY-this.activeShape.centerY)*Math.sin(Shape.Radian *this.activeShape.rotationDegree)+this.activeShape.centerX;
-      const rotatedY =  (this.activeShape.rotationHandleX-this.activeShape.centerX)*Math.sin(Shape.Radian * this.activeShape.rotationDegree)+(this.activeShape.rotationHandleY-this.activeShape.centerY)*Math.cos(Shape.Radian *this.activeShape.rotationDegree)+this.activeShape.centerY;
+        const rotatedX = (this.activeShape.rotationHandleX-this.activeShape.centerX)*Math.cos(Shape.Radian * this.activeShape.rotationDegree)-(this.activeShape.rotationHandleY-this.activeShape.centerY)*Math.sin(Shape.Radian *this.activeShape.rotationDegree)+this.activeShape.centerX;
+        const rotatedY =  (this.activeShape.rotationHandleX-this.activeShape.centerX)*Math.sin(Shape.Radian * this.activeShape.rotationDegree)+(this.activeShape.rotationHandleY-this.activeShape.centerY)*Math.cos(Shape.Radian *this.activeShape.rotationDegree)+this.activeShape.centerY;
 
          if (
         this.mousePoint.x >= rotatedX - this.activeShape.mySelBoxSize / 2 &&

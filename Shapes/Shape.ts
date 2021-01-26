@@ -33,6 +33,7 @@ export abstract class Shape {
     renderer: CanvasRenderingContext2D,
     x: number,
     y: number,
+    radius: number,
     color: string
   ): Path2D {
     renderer.save();
@@ -40,7 +41,7 @@ export abstract class Shape {
     shapePath.arc(
       x, // - this.mySelBoxSize,
       y, // - this.mySelBoxSize,
-      this.mySelBoxSize / 2,
+      radius,
       0,
       2 * Math.PI,
       false
@@ -50,6 +51,31 @@ export abstract class Shape {
     renderer.fill(shapePath);
     renderer.lineWidth = 1;
     renderer.strokeStyle = "#003300";
+    renderer.stroke(shapePath);
+    renderer.restore();
+    return shapePath;
+  }
+
+  protected drawCircel(
+    renderer: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    radius: number,
+    color: string
+  ): Path2D {
+    renderer.save();
+    const shapePath = new Path2D();
+    shapePath.arc(
+      x, // - this.mySelBoxSize,
+      y, // - this.mySelBoxSize,
+      radius,
+      0,
+      2 * Math.PI,
+      false
+    );
+    shapePath.closePath();
+    renderer.lineWidth = 1;
+    renderer.strokeStyle = color;
     renderer.stroke(shapePath);
     renderer.restore();
     return shapePath;
@@ -83,7 +109,8 @@ export abstract class Shape {
       this.rotateCanvas(renderer);
 
       renderer.fillStyle = this.mySelBoxColor;
-
+      this.drawCircel(renderer, this.centerX, this.centerY, 20,"silver");
+      // this.drawPoint(renderer, this.centerX, this.centerY, 2,"black");
       for (let i = 0; i < this.selectionHandles.length; i++) {
         const cur = this.selectionHandles[i];
 
@@ -92,6 +119,7 @@ export abstract class Shape {
             renderer,
             this.rotationHandleX,
             this.rotationHandleY,
+            this.mySelBoxSize / 2,
             "blue"
           );
         }
@@ -99,11 +127,13 @@ export abstract class Shape {
           renderer,
           cur.x,
           cur.y,
-          i === 0 ? "orange" : this.mySelBoxColor
+          this.mySelBoxSize / 2,
+          this.mySelBoxColor
+          // i === 0 ? "orange" : this.mySelBoxColor
         );
       }
 
-      this.drawPoint(renderer, this.centerX, this.centerY, "yellow");
+
 
       renderer.restore();
     }

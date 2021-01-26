@@ -19,6 +19,18 @@ export class PolygonShape extends Shape {
   mouseup(x: number, y: number, context: DrawingContext): void {}
   mousemove(x: number, y: number, context: DrawingContext): void {}
 
+private calculateCenter(): number[]{
+   let sumX = 0;
+    let sumY = 0;
+    for (let i = 0; i < this.selectionHandles.length; i++) {
+      sumX += this.selectionHandles[i].x;
+      sumY += this.selectionHandles[i].y;
+    }
+
+    const centerX = sumX / this.selectionHandles.length;
+    const centerY = sumY / this.selectionHandles.length;
+    return [centerX, centerY];
+}
   protected draw(
     renderer: CanvasRenderingContext2D,
     context: DrawingContext,
@@ -28,15 +40,10 @@ export class PolygonShape extends Shape {
       return;
     }
 
-    let sumX = 0;
-    let sumY = 0;
-    for (let i = 0; i < this.selectionHandles.length; i++) {
-      sumX += this.selectionHandles[i].x;
-      sumY += this.selectionHandles[i].y;
-    }
+    const newCenter = this.calculateCenter();
 
-    this.centerX = sumX / this.selectionHandles.length;
-    this.centerY = sumY / this.selectionHandles.length;
+    this.centerX = newCenter[0];
+    this.centerY = newCenter[1];
     // const bounds = context.canvas.getBoundingClientRect();
     // if (this.x < bounds.left) {
     //   this.x = bounds.left;
@@ -99,7 +106,7 @@ export class PolygonShape extends Shape {
         // we found one!
         expectResize = i;
         context.canvas.style.cursor = "move";
-        context.invalidate();
+        // context.invalidate();
       }
     }
 
@@ -111,13 +118,102 @@ export class PolygonShape extends Shape {
 
   protected resize(
     x: number,
-    y: number,
+    y: number, 
     selectionHandle: SelectionHandle,
     context: DrawingContext
   ) {
     // time ro resize!
-    const renderer = context.renderer;
+    const renderer = context.renderer; 
     this.drawPoint(renderer, x, y, "blue");
+
+    const unrotatedX =
+      (x - this.centerX) * Math.cos(Shape.Radian * -this.rotationDegree) -
+      (y - this.centerY) * Math.sin(Shape.Radian * -this.rotationDegree) +
+      this.centerX;
+    const unrotatedY =
+      (x - this.centerX) * Math.sin(Shape.Radian * -this.rotationDegree) +
+      (y - this.centerY) * Math.cos(Shape.Radian * -this.rotationDegree) +
+      this.centerY;
+
+    // set new unrotated mous position as selected handle position
+    selectionHandle.x = unrotatedX;
+    selectionHandle.y = unrotatedY;
+    // const rotatedSelectionHandleX =
+    //   (selectionHandle.x - this.centerX) * Math.cos(Shape.Radian * this.rotationDegree) -
+    //   (selectionHandle.y - this.centerY) * Math.sin(Shape.Radian * this.rotationDegree) +
+    //   this.centerX;
+
+    // const rotatedSelectionHandleY =
+    //   (selectionHandle.x - this.centerX) * Math.sin(Shape.Radian * this.rotationDegree) +
+    //   (selectionHandle.y - this.centerY) * Math.cos(Shape.Radian * this.rotationDegree) +
+    //   this.centerY;
+
+    // const offsetX = x - rotatedSelectionHandleX;
+    // const offsetY = y - rotatedSelectionHandleY;
+
+    // selectionHandle.x =
+    //   (selectionHandle.x - this.centerX) * Math.cos(Shape.Radian * this.rotationDegree) -
+    //   (selectionHandle.y - this.centerY) * Math.sin(Shape.Radian * this.rotationDegree) +
+    //   this.centerX;
+
+    // const rotatedSelectionHandleY =
+    //   (selectionHandle.x - this.centerX) * Math.sin(Shape.Radian * this.rotationDegree) +
+    //   (selectionHandle.y - this.centerY) * Math.cos(Shape.Radian * this.rotationDegree) +
+    //   this.centerY;
+
+    // rotate all handles
+
+//     this.selectionHandles.forEach(handle => {
+
+//  const oppositeHandle = this.rotate(handle.x, handle.y,this.centerX, this.centerY, Math.sin(Shape.Radian * this.rotationDegree));
+  
+//     const newOppositeHandle = this.rotate(
+//       oppositeHandle[0],
+//       oppositeHandle[1],
+//       newCenter[0],
+//       newCenter[1], 
+//       -angle
+//     );
+//     });
+
+      // const unrotatedX =
+      //   (x - this.centerX) * Math.cos(Shape.Radian * -this.rotationDegree) -
+      //   (y - this.centerY) * Math.sin(Shape.Radian * -this.rotationDegree) +
+      //   this.centerX;
+      // const unrotatedY =
+      //   (x - this.centerX) * Math.sin(Shape.Radian * -this.rotationDegree) +
+      //   (y - this.centerY) * Math.cos(Shape.Radian * -this.rotationDegree) +
+      //   this.centerY;
+
+      // const rotatedSelectionHandleX =
+      //   (x - this.centerX) * Math.cos(Shape.Radian * this.rotationDegree) -
+      //   (y - this.centerY) * Math.sin(Shape.Radian * this.rotationDegree) +
+      //   this.centerX;
+
+      // const rotatedSelectionHandleY =
+      //   (selectionHandle.x - this.centerX) * Math.sin(Shape.Radian * this.rotationDegree) +
+      //   (selectionHandle.y - this.centerY) * Math.cos(Shape.Radian * this.rotationDegree) +
+      //   this.centerY;
+
+      // const offsetX = x - rotatedSelectionHandleX;
+      // const offsetY = y - rotatedSelectionHandleY;
+
+      selectionHandle.x  = unrotatedX;
+      selectionHandle.y  = unrotatedY;
+
+      const newCenter = this.calculateCenter();
+
+      // const offsetCenterX = newCenter[0] - this.centerX;
+      // const offsetCenterY = newCenter[1] - this.centerY;
+
+      // this.selectionHandles.forEach(handle => {
+      //   if(handle !== selectionHandle){
+      //     handle.x -= offsetCenterX;
+      //     handle.y -= offsetCenterY;
+      //   }
+      // });
+
+     
     // // if (selectionHandle !== null) {
     // // const unrotatedMouseHandle = this.rotate(x, y, this.centerX, this.centerY, -this.rotationDegree * Shape.Radian);
     // const unrotatedMouseHandle = this.rotate(x, y, this.centerX, this.centerY, -this.rotationDegree * Shape.Radian);
@@ -125,8 +221,10 @@ export class PolygonShape extends Shape {
     //   selectionHandle.x = unrotatedMouseHandle[0];
     //   selectionHandle.y = unrotatedMouseHandle[1];
 
-    selectionHandle.x = x;
-    selectionHandle.y = y;
+    // selectionHandle.x = rotatedX;
+    // selectionHandle.y = rotatedY;
+     this.drawPoint(renderer, selectionHandle.x,selectionHandle.y, "green");
+        context.invalidate();
     // }
   }
 
