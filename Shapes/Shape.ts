@@ -204,7 +204,7 @@ export abstract class Shape {
   // }
 
   public setClipPath(clipPath: string, context: DrawingContext) {
-    console.log('setClipPath', context.canvas.width, context.canvas.height, clipPath);
+    // console.log('setClipPath', context.canvas.width, context.canvas.height, clipPath);
     const imageWidth = context.canvas.width;
     const imageHeight = context.canvas.height;
     const rx_validate = /^[ ]*[p|P]{1}olygon[ ]*\((?<points>(?<point>[-.0-9% ]+,?)*)*[ ]*\)$/;
@@ -218,10 +218,10 @@ export abstract class Shape {
       while ((m = rx_extract.exec(clipPath.substr(1)))) {
         let x = parseFloat(m[1].replace(' ', '').replace('%', ''));
         let y = parseFloat(m[2].replace(' ', '').replace('%', ''));
-        x = this.round(x * imageWidth / 100, 3);
-        y = this.round(y * imageHeight / 100, 3);
+        x = this.round(x * imageWidth / 100, 5);
+        y = this.round(y * imageHeight / 100, 5);
         this.selectionHandles.push(new SelectionHandle(x, y));
-        console.log('handle', i, x, y);
+        // console.log('handle', i, x, y);
         i++;
       }
 
@@ -231,9 +231,9 @@ export abstract class Shape {
     }
   }
 
-  private round(val: number, decimals: number): number {
-    return val;
-    // return +(val.toFixed(decimals));
+  protected round(val: number, decimals: number): number {
+    // return val;
+    return +(val.toFixed(decimals));
   }
 
   public getClipPath(context: DrawingContext) {
@@ -248,8 +248,8 @@ export abstract class Shape {
     for (const point of this.selectionHandles) {
 
       const rotatedPoint = this.rotate(point.x, point.y, this.centerX, this.centerY, this.rotationDegree * Shape.Radian);
-      const x = this.round((rotatedPoint[0] / imageWidth) * 100, 3) + '%';
-      const y = this.round((rotatedPoint[1] / imageHeight) * 100, 3) + '%';
+      const x = this.round((rotatedPoint[0] / imageWidth) * 100, 5) + '%';
+      const y = this.round((rotatedPoint[1] / imageHeight) * 100, 5) + '%';
 
       if (i === this.selectionHandles.length - 1) {
         // last coordinate to add, omits a comma at the end
@@ -279,8 +279,8 @@ export abstract class Shape {
 
     for (const point of allPoints) {
       const rotatedPoint = this.rotate(point.x, point.y, this.centerX, this.centerY, this.rotationDegree * Shape.Radian);
-      const x = this.round((rotatedPoint[0] / imageWidth) * 100, 3) + '%';
-      const y = this.round((rotatedPoint[1] / imageHeight) * 100, 3) + '%';
+      const x = this.round((rotatedPoint[0] / imageWidth) * 100, 5) + '%';
+      const y = this.round((rotatedPoint[1] / imageHeight) * 100, 5) + '%';
 
       if (i === allPoints.length - 1) {
         paths += x + ' ' + y + ', ';
@@ -291,9 +291,9 @@ export abstract class Shape {
         const rotatedStartPoint = this.rotate(startPoint.x, startPoint.y, this.centerX, this.centerY, this.rotationDegree * Shape.Radian);
 
         const startPointX =
-          this.round((rotatedStartPoint[0] / imageWidth) * 100, 3) + '%';
+          this.round((rotatedStartPoint[0] / imageWidth) * 100, 5) + '%';
         const startPointY =
-          this.round((rotatedStartPoint[1] / imageHeight) * 100, 3) + '%';
+          this.round((rotatedStartPoint[1] / imageHeight) * 100, 5) + '%';
         paths += startPointX + ' ' + startPointY + ', ';
 
         // define corners
@@ -327,7 +327,7 @@ export abstract class Shape {
 
         for (let index = 0; index < cornersInDirectionOrder.length; index++) {
           const corner = cornersInDirectionOrder[index];
-          const cornerX = this.round((corner.x / imageWidth) * 100, 3) + '%';
+          const cornerX = this.round((corner.x / imageWidth) * 100, 5) + '%';
           const cornerY = this.round((corner.y / imageHeight) * 100, 3) + '%';
           paths += cornerX + ' ' + cornerY + ', ';
         }

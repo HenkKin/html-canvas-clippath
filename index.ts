@@ -22,14 +22,22 @@ img1.onload = function() {
   //drawingContext.renderer.drawImage(img1, 0, 0, canvas.width, canvas.height);
   drawingContext.init(img1);
 
+let previousClipPath = '';
   setInterval(function() {
     let clipPath = "<ul>";
     for (let i = 0; i < drawingContext.shapes.length; i++) {
       clipPath +=
-        "<li>" + drawingContext.shapes[i].getClipPath(drawingContext) + "</li>";
+        "<li>" +
+        drawingContext.shapes[i].rotationDegree +
+        " - " +
+        drawingContext.shapes[i].getClipPath(drawingContext) +
+        "</li>";
     }
     clipPath += "</ul>";
-    document.getElementById("clip-path").innerHTML = clipPath;
+    if(clipPath !== previousClipPath){
+      document.getElementById("clip-path").innerHTML = clipPath;
+      previousClipPath = clipPath;
+    }
   }, 2000);
 
   // console.log("ready");

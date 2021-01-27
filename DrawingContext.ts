@@ -145,6 +145,17 @@ export class DrawingContext {
     };
     // add custom initialization here:
 
+    // const shape = new RectangleShape(0,0);
+    // // rotationDegree moet zijn -50.3
+    // shape.setClipPath('polygon(9.494% 75.976%, 19.715% 67.304%, 29.936% 58.632%, 46.645% 68.403%, 63.353% 78.173%, 53.132% 86.845%, 42.911% 95.517%, 26.202% 85.746%)', this);
+    // // rotationDegree moet zijn -42.102
+    // shape.setClipPath('polygon(40.512% 58.294%, 51.807% 66.278%, 63.101% 74.262%, 47.718% 85.059%, 32.335% 95.855%, 21.04% 87.871%, 9.746% 79.887%, 25.129% 69.091%)', this);
+
+    // // rotationDegree moet zijn -14.676
+    // shape.setClipPath('polygon(15.4421% 65.13287%, 30.92158% 62.27737%, 46.40106% 59.42187%, 51.90298% 74.219%, 57.4049% 89.01613%, 41.92542% 91.87163%, 26.44594% 94.72713%, 20.94402% 79.93%)', this);
+    // this.shapes.push(shape);
+    // this.activeShape = shape;
+
     // // add a large green rectangle
     // this.addRect(260, 70, 60, 65, 'rgba(0,205,0,0.7)');
 
@@ -505,10 +516,14 @@ export class DrawingContext {
         this.mousePoint.y - this.activeShape.centerY,
         this.mousePoint.x - this.activeShape.centerX
       );
+      
 
-      const rotationDegree =
+      const rotationDegree = this.round(
         ((angleFromMouseToCenter - angleFromRotationhandleToCenter) * 180) /
-        Math.PI;
+        Math.PI, 3);
+
+      // console.log(rotationDegree);
+      // console.log(rotationDegree, angleFromRotationhandleToCenter*180/Math.PI, angleFromMouseToCenter*180/Math.PI);
       this.activeShape.rotationDegree = rotationDegree;
       // console.log("Angle", this.activeShape.rotationDegree);
 
@@ -553,5 +568,10 @@ export class DrawingContext {
         this.canvas.style.cursor = this.isDrag ? 'move' : 'auto';
       }
     }
+  }
+    
+  private round(val: number, decimals: number): number {
+    // return val;
+    return +(val.toFixed(decimals));
   }
 }

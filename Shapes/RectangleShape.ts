@@ -78,30 +78,63 @@ export class RectangleShape extends Shape {
     // const unrotatedTopLeft = this.rotate(this.getSelectionHandleX(RectangleShape.TopLeft), this.getSelectionHandleY(RectangleShape.TopLeft), this.centerX, this.centerY, -this.rotationDegree * Shape.Radian);
     // const unrotatedBottomRight = this.rotate(this.getSelectionHandleX(RectangleShape.BottomRight), this.getSelectionHandleY(RectangleShape.BottomRight), this.centerX, this.centerY, -this.rotationDegree * Shape.Radian);
 
-    this.w = this.calculateDistance(this.getSelectionHandleX(RectangleShape.Left), this.getSelectionHandleY(RectangleShape.Left), this.getSelectionHandleX(RectangleShape.Right), this.getSelectionHandleY(RectangleShape.Right));
-    this.h = this.calculateDistance(this.getSelectionHandleX(RectangleShape.Top), this.getSelectionHandleY(RectangleShape.Top), this.getSelectionHandleX(RectangleShape.Bottom), this.getSelectionHandleY(RectangleShape.Bottom));
+    this.w = this.round(this.calculateDistance(this.getSelectionHandleX(RectangleShape.Left), this.getSelectionHandleY(RectangleShape.Left), this.getSelectionHandleX(RectangleShape.Right), this.getSelectionHandleY(RectangleShape.Right)),3);
+    this.h = this.round(this.calculateDistance(this.getSelectionHandleX(RectangleShape.Top), this.getSelectionHandleY(RectangleShape.Top), this.getSelectionHandleX(RectangleShape.Bottom), this.getSelectionHandleY(RectangleShape.Bottom)),3);
 
 
-    const angleFromRotationhandleToCenter = Math.atan2(
-      this.rotationHandleY -
-      this.centerY,
-      this.rotationHandleX -
-      this.centerX
-    );
-    /// TODO deze hoek is nog niet goed
-    const angleFromMouseToCenter = Math.atan2(
-      this.getSelectionHandleY(RectangleShape.TopLeft) - this.centerY,
-      this.getSelectionHandleX(RectangleShape.TopLeft) - this.centerX
-    );
+    // const angleFromRotationhandleToCenter = Math.atan2(
+    //   this.rotationHandleY -
+    //   this.centerY,
+    //   this.rotationHandleX -
+    //   this.centerX
+    // );
+    // /// TODO deze hoek is nog niet goed
+    // const angleFromMouseToCenter = Math.atan2(
+    //   this.getSelectionHandleY(RectangleShape.Left) - this.centerY,
+    //   this.getSelectionHandleX(RectangleShape.Left) - this.centerX
+    // );
 
-    const rotationDegree = ((angleFromMouseToCenter - angleFromRotationhandleToCenter) * 180) /
-      Math.PI;
-    this.rotationDegree = rotationDegree;
-    // this.h = unrotatedBottomRight[1] - unrotatedTopLeft[1];
-    console.log(this.rotationDegree, this.w, this.h);
-    // console.log(this.rotationDegree, aanliggendeZijde, overstaandeZijde, this.w, this.h);
+    // // const angleFromRotationhandleToCenter = Math.atan2(
+    // //   0 -
+    // //   this.centerY,
+    // //   0 -
+    // //   this.centerX
+    // // );
+    // // /// TODO deze hoek is nog niet goed
+    // // const angleFromMouseToCenter = Math.atan2(
+    // //   this.getSelectionHandleY(RectangleShape.Top) - this.centerY,
+    // //   this.getSelectionHandleX(RectangleShape.Top) - this.centerX
+    // // );
+
+    // const rotationDegree = this.round((((angleFromRotationhandleToCenter-angleFromMouseToCenter) * 180) /
+    //   Math.PI) - 180,3);
+    // this.rotationDegree = rotationDegree;
+    // // this.h = unrotatedBottomRight[1] - unrotatedTopLeft[1];
+    // console.log(rotationDegree, this.w, this.h);
+    // // console.log(this.rotationDegree, aanliggendeZijde, overstaandeZijde, this.w, this.h);
 
     // this.adjustSelectionHandles();
+
+      const angleFromRotationhandleToCenter = Math.atan2(
+        this.rotationHandleY -
+        this.centerY,
+        this.rotationHandleX -
+        this.centerX
+      );
+      const angleFromMouseToCenter = Math.atan2(
+        this.getSelectionHandleY(RectangleShape.Bottom) - this.centerY,
+        this.getSelectionHandleX(RectangleShape.Bottom) - this.centerX
+      );
+      
+
+      const rotationDegree = this.round(
+        ((angleFromMouseToCenter - angleFromRotationhandleToCenter) * 180) /
+        Math.PI, 3);
+
+      // console.log(rotationDegree);
+      // console.log(rotationDegree, angleFromRotationhandleToCenter*180/Math.PI, angleFromMouseToCenter*180/Math.PI);
+      this.rotationDegree = rotationDegree;
+      this.adjustSelectionHandles();
   }
 
   protected draw(
