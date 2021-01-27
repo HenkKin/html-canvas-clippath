@@ -1,9 +1,9 @@
-import { DrawingConfig } from './DrawingConfig';
-import { Point } from './Point';
-import { SelectionHandle } from './SelectionHandle';
-import { PolygonShape } from './Shapes/PolygonShape';
-import { RectangleShape } from './Shapes/RectangleShape';
-import { Shape } from './Shapes/Shape';
+import { DrawingConfig } from "./DrawingConfig";
+import { Point } from "./Point";
+import { SelectionHandle } from "./SelectionHandle";
+import { PolygonShape } from "./Shapes/PolygonShape";
+import { RectangleShape } from "./Shapes/RectangleShape";
+import { Shape } from "./Shapes/Shape";
 
 export class DrawingContext {
   canvas: HTMLCanvasElement;
@@ -45,7 +45,7 @@ export class DrawingContext {
   constructor(canvas: HTMLCanvasElement, config: DrawingConfig) {
     this.canvas = canvas;
     this.config = config;
-    this.renderer = canvas.getContext('2d');
+    this.renderer = canvas.getContext("2d");
   }
 
   protected rotateCanvas(
@@ -61,21 +61,21 @@ export class DrawingContext {
 
   init(background: HTMLImageElement) {
     this.background = background;
-    this.canvas.style.backgroundImage = 'url(' + background.src + ')';
-    this.canvas.style.backgroundSize = '100% 100%';
+    this.canvas.style.backgroundImage = "url(" + background.src + ")";
+    this.canvas.style.backgroundSize = "100% 100%";
     this.canvas.height = this.canvas.parentElement.clientHeight;
     this.canvas.width = this.canvas.height * this.aspectRatio;
 
     // this.renderer.fillStyle = "silver";
     // this.renderer.fillRect(0, 0, this.canvas.width, this.canvas.height);
     // this.renderer.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    this.ghostCanvas = document.createElement('canvas');
+    this.ghostCanvas = document.createElement("canvas");
     this.ghostCanvas.height = this.canvas.height;
     this.ghostCanvas.width = this.canvas.width;
-    this.ghostRenderer = this.ghostCanvas.getContext('2d');
+    this.ghostRenderer = this.ghostCanvas.getContext("2d");
 
     // fixes a problem where double clicking causes text to get selected on the canvas
-    this.canvas.onselectstart = function () {
+    this.canvas.onselectstart = function() {
       return false;
     };
 
@@ -85,28 +85,28 @@ export class DrawingContext {
       this.stylePaddingLeft =
         parseInt(
           document.defaultView.getComputedStyle(this.canvas, null)[
-          'paddingLeft'
+            "paddingLeft"
           ],
           10
         ) || 0;
       this.stylePaddingTop =
         parseInt(
           document.defaultView.getComputedStyle(this.canvas, null)[
-          'paddingTop'
+            "paddingTop"
           ],
           10
         ) || 0;
       this.styleBorderLeft =
         parseInt(
           document.defaultView.getComputedStyle(this.canvas, null)[
-          'borderLeftWidth'
+            "borderLeftWidth"
           ],
           10
         ) || 0;
       this.styleBorderTop =
         parseInt(
           document.defaultView.getComputedStyle(this.canvas, null)[
-          'borderTopWidth'
+            "borderTopWidth"
           ],
           10
         ) || 0;
@@ -125,22 +125,37 @@ export class DrawingContext {
     // document.onmousemove = this.myMove;
 
     const self = this;
-    document.addEventListener('mousedown', function (e) {
+    document.addEventListener("mousedown", function(e) {
       self.myDown(e);
     });
-    document.addEventListener('mouseup', function (e) {
+    document.addEventListener("mouseup", function(e) {
       self.myUp(e);
     });
-    document.addEventListener('dblclick', function (e) {
+    document.addEventListener("dblclick", function(e) {
       self.myDblClick(e);
     });
-    document.addEventListener('mousemove', function (e) {
+    document.addEventListener("mousemove", function(e) {
       self.myMove(e);
     });
-    window.onresize = function () {
-      // TODO: tranform shapes to new canvas dimension
+    window.onresize = function() {
+      const allClippathsFromShapes: {
+        shape: Shape;
+        clipPath: string;
+      }[] = self.shapes.map(s => {
+        return { shape: s, clipPath: s.getClipPath(self) };
+      });
+
       self.canvas.height = self.canvas.parentElement.clientHeight;
       self.canvas.width = self.canvas.height * self.aspectRatio;
+
+      self.shapes.forEach(s => {
+        allClippathsFromShapes.forEach(clipPath => {
+          if (clipPath.shape === s) {
+            s.setClipPath(clipPath.clipPath, self);
+          }
+        });
+      });
+      // console.log('resize')
       self.invalidate();
     };
     // add custom initialization here:
@@ -186,7 +201,10 @@ export class DrawingContext {
     // we are over a selection box
     if (this.activeShape !== null && this.selectedSelectionHandle !== null) {
       // console.log('selectedSelect',this.selectedSelectionHandle, this.selectedSelectionHandle === this.activeShape.rotationSelectionHandle);
-      if (this.selectedSelectionHandle === this.activeShape.rotationSelectionHandle) {
+      if (
+        this.selectedSelectionHandle ===
+        this.activeShape.rotationSelectionHandle
+      ) {
         this.isRotate = true;
       } else {
         this.isResizeDrag = true;
@@ -240,7 +258,7 @@ export class DrawingContext {
             this
           );
           this.isDrag = true;
-          this.canvas.style.cursor = 'move';
+          this.canvas.style.cursor = "move";
         }
         this.invalidate();
         this.clear(this.ghostRenderer, true);
@@ -259,7 +277,8 @@ export class DrawingContext {
       this.isCreatingShape = true;
       this.isCreatingShapeX = this.mousePoint.x;
       this.isCreatingShapeY = this.mousePoint.y;
-      this.selectedSelectionHandle = shape.selectionHandles[RectangleShape.BottomRight]; // right-bottom
+      this.selectedSelectionHandle =
+        shape.selectionHandles[RectangleShape.BottomRight]; // right-bottom
       this.isResizeDrag = true;
     }
     // clear the ghost canvas for next time
@@ -299,7 +318,7 @@ export class DrawingContext {
     ) {
       c.clearRect(0, 0, this.canvas.width, this.canvas.height);
     } else {
-      c.fillStyle = 'silver';
+      c.fillStyle = "silver";
       // const currentGlobalAlpha = c.globalAlpha;
       c.globalAlpha = 0.5;
       c.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -451,7 +470,7 @@ export class DrawingContext {
     this.isResizeDrag = false;
     this.isRotate = false;
     this.selectedSelectionHandle = null;
-    this.canvas.style.cursor = 'auto';
+    this.canvas.style.cursor = "auto";
   }
 
   // Happens when the mouse is moving inside the canvas
@@ -474,7 +493,7 @@ export class DrawingContext {
     // } else
     if (this.isDrag) {
       // this.getMouse(e);
-      this.canvas.style.cursor = 'move';
+      this.canvas.style.cursor = "move";
 
       this.activeShape.moveShape(
         this.mousePoint.x - this.mousePointOffsetX,
@@ -505,22 +524,21 @@ export class DrawingContext {
       this.invalidate();
     } else if (this.isRotate) {
       // this.getMouse(e);
-      this.canvas.style.cursor = 'grabbing';
+      this.canvas.style.cursor = "grabbing";
       const angleFromRotationhandleToCenter = Math.atan2(
-        this.activeShape.rotationHandleY -
-        this.activeShape.centerY,
-        this.activeShape.rotationHandleX -
-        this.activeShape.centerX
+        this.activeShape.rotationHandleY - this.activeShape.centerY,
+        this.activeShape.rotationHandleX - this.activeShape.centerX
       );
       const angleFromMouseToCenter = Math.atan2(
         this.mousePoint.y - this.activeShape.centerY,
         this.mousePoint.x - this.activeShape.centerX
       );
-      
 
       const rotationDegree = this.round(
         ((angleFromMouseToCenter - angleFromRotationhandleToCenter) * 180) /
-        Math.PI, 3);
+          Math.PI,
+        3
+      );
 
       // console.log(rotationDegree);
       // console.log(rotationDegree, angleFromRotationhandleToCenter*180/Math.PI, angleFromMouseToCenter*180/Math.PI);
@@ -540,8 +558,18 @@ export class DrawingContext {
       );
       if (this.selectedSelectionHandle === null) {
         // const cur = this.activeShape.rotationSelectionHandle;
-        const rotatedX = (this.activeShape.rotationHandleX - this.activeShape.centerX) * Math.cos(Shape.Radian * this.activeShape.rotationDegree) - (this.activeShape.rotationHandleY - this.activeShape.centerY) * Math.sin(Shape.Radian * this.activeShape.rotationDegree) + this.activeShape.centerX;
-        const rotatedY = (this.activeShape.rotationHandleX - this.activeShape.centerX) * Math.sin(Shape.Radian * this.activeShape.rotationDegree) + (this.activeShape.rotationHandleY - this.activeShape.centerY) * Math.cos(Shape.Radian * this.activeShape.rotationDegree) + this.activeShape.centerY;
+        const rotatedX =
+          (this.activeShape.rotationHandleX - this.activeShape.centerX) *
+            Math.cos(Shape.Radian * this.activeShape.rotationDegree) -
+          (this.activeShape.rotationHandleY - this.activeShape.centerY) *
+            Math.sin(Shape.Radian * this.activeShape.rotationDegree) +
+          this.activeShape.centerX;
+        const rotatedY =
+          (this.activeShape.rotationHandleX - this.activeShape.centerX) *
+            Math.sin(Shape.Radian * this.activeShape.rotationDegree) +
+          (this.activeShape.rotationHandleY - this.activeShape.centerY) *
+            Math.cos(Shape.Radian * this.activeShape.rotationDegree) +
+          this.activeShape.centerY;
 
         if (
           this.mousePoint.x >= rotatedX - this.activeShape.mySelBoxSize / 2 &&
@@ -551,7 +579,7 @@ export class DrawingContext {
         ) {
           // we found one!
           this.selectedSelectionHandle = this.activeShape.rotationSelectionHandle;
-          this.canvas.style.cursor = 'grab';
+          this.canvas.style.cursor = "grab";
           this.invalidate();
           return;
         }
@@ -561,17 +589,17 @@ export class DrawingContext {
         this.isResizeDrag = false;
         this.isRotate = false;
         this.selectedSelectionHandle = null;
-        this.canvas.style.cursor = this.isDrag ? 'move' : 'auto';
+        this.canvas.style.cursor = this.isDrag ? "move" : "auto";
       }
     } else {
       if (!this.isResizeDrag) {
-        this.canvas.style.cursor = this.isDrag ? 'move' : 'auto';
+        this.canvas.style.cursor = this.isDrag ? "move" : "auto";
       }
     }
   }
-    
+
   private round(val: number, decimals: number): number {
     // return val;
-    return +(val.toFixed(decimals));
+    return +val.toFixed(decimals);
   }
 }
