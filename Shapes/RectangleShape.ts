@@ -14,14 +14,11 @@ export class RectangleShape extends Shape {
   w = 1; // default width and height?
   h = 1;
   mousedown(x: number, y: number, context: DrawingContext): void { 
-    if(this.isCreating === true){
-      this.addSelectionHandle(x, y);
-      context.invalidate();
-    }
+ 
   }
 
   mouseup(x: number, y: number, context: DrawingContext): void { 
-    
+
     if (this.isCreating == true) {
       this.isCreating = false;
       const minimumDistance = 10;
@@ -170,6 +167,7 @@ export class RectangleShape extends Shape {
   ): Path2D {
 
     const path = new Path2D();
+    // console.log(this.selectionHandles.length);
 
     path.moveTo(this.selectionHandles[0].x, this.selectionHandles[0].y);
 

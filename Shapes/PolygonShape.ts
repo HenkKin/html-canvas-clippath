@@ -12,7 +12,7 @@ export class PolygonShape extends Shape {
   }
 
   constructor() {
-    super(); 
+    super();
   }
   public onSelectionHandleAdded(): void {
     const newCenter = this.calculateCenter();
@@ -21,8 +21,15 @@ export class PolygonShape extends Shape {
     this.centerY = newCenter[1];
   }
 
-  mousedown(x: number, y: number, context: DrawingContext): void {}
-  mouseup(x: number, y: number, context: DrawingContext): void {}
+  mousedown(x: number, y: number, context: DrawingContext): void {
+   
+  }
+  mouseup(x: number, y: number, context: DrawingContext): void {
+ if(this.isCreating === true && this.isResizeDrag === false && this.isRotate === false && this.isDrag === false){
+      this.addSelectionHandle(x, y);
+      context.invalidate();
+    }
+  }
   mousemove(x: number, y: number, context: DrawingContext): void {}
 
   private calculateCenter(): number[] {

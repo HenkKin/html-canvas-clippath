@@ -1,9 +1,13 @@
 import { DrawingConfig } from "./DrawingConfig";
 import { Point } from "./Point";
-import { SelectionHandle } from "./SelectionHandle";
 import { PolygonShape } from "./Shapes/PolygonShape";
 import { RectangleShape } from "./Shapes/RectangleShape";
 import { Shape } from "./Shapes/Shape";
+
+enum Shapes{
+  Rectangle = 0,
+  Polygon = 1,
+} 
 
 export class DrawingContext {
   canvas: HTMLCanvasElement;
@@ -17,16 +21,15 @@ export class DrawingContext {
   stylePaddingTop: number;
   styleBorderLeft: number;
   styleBorderTop: number;
+  currentShapeType = Shapes.Rectangle;
+  // currentShapeType = Shapes.Polygon;
 
   INTERVAL = 20; // how often, in milliseconds, we check to see if a redraw is needed
 
   mousePoint: Point;
 
-  mousePointOffsetX: number;
-  mousePointOffsetY: number;
 
   canvasValid = true;
-  selectedSelectionHandle: SelectionHandle = null;
   // expectResize = -1; // New, will save the # of the selection handle if the mouse is over one.
   background: HTMLImageElement;
   get aspectRatio(): number {
@@ -188,127 +191,7 @@ export class DrawingContext {
 
     // this.addPolygonShape("rgba(150,150,250,0.7)");
   }
-  // Happens when the mouse is clicked in the canvas
-  myDown(e: MouseEvent) {
-    this.getMouse(e);
-    // console.log(this.mousePoint);
-    // const bounds = this.canvas.getBoundingClientRect();
-    // console.log(bounds);
-    if (
-      this.mousePoint.x < 0 ||
-      this.mousePoint.x > this.canvas.width ||
-      this.mousePoint.y < 0 ||
-      this.mousePoint.y > this.canvas.height
-    ) {
-      e.preventDefault();
-      e.stopPropagation();
-      return;
-    }
-
-    if (this.activeShape !== null && this.activeShape.isCreating === true) {
-      this.activeShape.addSelectionHandle(this.mousePoint.x, this.mousePoint.y);
-      this.invalidate();
-      return;
-    }
-    // we are over a selection box
-    if (this.activeShape !== null && this.selectedSelectionHandle !== null) {
-      // console.log('selectedSelect',this.selectedSelectionHandle, this.selectedSelectionHandle === this.activeShape.rotationSelectionHandle);
-      if (
-        this.selectedSelectionHandle ===
-        this.activeShape.rotationSelectionHandle
-      ) {
-        this.activeShape.isRotate = true;
-      } else {
-        this.activeShape.isResizeDrag = true;
-      }
-      return;
-    }
-
-    // this.clear(this.ghostRenderer, true);
-    // var l = this.shapes.length;
-
-    // use activeShape first, so the whole surface is selectable
-    const shapesToDraw: Array<Shape> = this.shapes.filter(
-      s => s !== this.activeShape
-    );
-    if (this.activeShape !== null) {
-      shapesToDraw.push(this.activeShape);
-    }
-
-    for (let i = shapesToDraw.length - 1; i >= 0; i--) {
-      // draw shape onto ghost context
-      shapesToDraw[i].drawShape(this.ghostRenderer, this, true);
-
-      // get image data at the mouse x,y pixel
-      const imageData = this.ghostRenderer.getImageData(
-        this.mousePoint.x,
-        this.mousePoint.y,
-        1,
-        1
-      );
-      // var index = (mousePoint.x + mousePoint.y * imageData.width) * 4;
-      // console.log(imageData.data);
-      // if the mouse pixel exists, select and break
-      if (imageData.data[3] > 0) {
-        // if (
-        //   this.ghostRenderer.isPointInPath(
-        //     shapesToDraw[i].shapePath,
-        //     this.mousePoint.x,
-        //     this.mousePoint.y
-        //   )
-        // ) {
-        this.activeShape = shapesToDraw[i];
-        if (e.ctrlKey === true) {
-          this.shapes = this.shapes.filter(s => s !== this.activeShape);
-          this.activeShape = null;
-        } else {
-          this.mousePointOffsetX = this.mousePoint.x - this.activeShape.centerX;
-          this.mousePointOffsetY = this.mousePoint.y - this.activeShape.centerY;
-          // this.activeShape.moveShape(
-          //   this.mousePoint.x - this.mousePointOffsetX,
-          //   this.mousePoint.y - this.mousePointOffsetY,
-          //   this
-          // );
-          this.activeShape.isDrag = true;
-          this.canvas.style.cursor = "move";
-        }
-        this.invalidate();
-        this.clear(this.ghostRenderer, true);
-        return;
-      }
-    }
-    // havent returned means we have selected nothing
-    this.activeShape = null;
-    if (
-      this.shapes.length < this.config.maxNumberOfShapes ||
-      this.config.maxNumberOfShapes === Infinity
-    ) {
-      const shape = new RectangleShape(this.mousePoint.x, this.mousePoint.y);
-      this.shapes.push(shape);
-      this.activeShape = shape;
-      shape.isCreating = true;
-      shape.isResizeDrag = true;
-      // this.isCreatingShapeX = this.mousePoint.x;
-      // this.isCreatingShapeY = this.mousePoint.y;
-      this.selectedSelectionHandle = shape.getSelectionHandle(
-        RectangleShape.BottomRight
-      ); // right-bottom
-
-      // const shape = new PolygonShape();
-      // shape.addSelectionHandle(this.mousePoint.x, this.mousePoint.y);
-      // this.shapes.push(shape);
-      // this.activeShape = shape;
-      // this.activeShape.isCreating = true;
-      // this.isCreatingShapeX = this.mousePoint.x;
-      // this.isCreatingShapeY = this.mousePoint.y;
-      // this.selectedSelectionHandle = shape.getSelectionHandle(0);
-      // this.activeShape.isResizeDrag = true;
-    }
-    // clear the ghost canvas for next time
-    this.clear(this.ghostRenderer, true);
-    // invalidate because we might need the selection border to disappear
-    this.invalidate();
-  }
+ 
   // wipes the canvas context
   clear(c: CanvasRenderingContext2D, isGhostContext: boolean) {
     c.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -337,7 +220,9 @@ export class DrawingContext {
   addTransparancyLayer(c: CanvasRenderingContext2D, isGhostContext: boolean) {
     if (
       this.shapes.length === 0 ||
-      (this.shapes.length === 1 && this.activeShape !== null && this.activeShape.isCreating)
+      (this.shapes.length === 1 &&
+        this.activeShape !== null &&
+        this.activeShape.isCreating)
     ) {
       c.clearRect(0, 0, this.canvas.width, this.canvas.height);
     } else {
@@ -448,7 +333,7 @@ export class DrawingContext {
       // this.renderer.drawImage(
       //   this.background,
       //   0,
-      //   0, 
+      //   0,
       //   this.canvas.width,
       //   this.canvas.height
       // );
@@ -472,32 +357,106 @@ export class DrawingContext {
     }
   }
 
+   // Happens when the mouse is clicked in the canvas
+  myDown(e: MouseEvent) {
+    this.getMouse(e);
+    // console.log(this.mousePoint);
+    // const bounds = this.canvas.getBoundingClientRect();
+    // console.log(bounds);
+    if (
+      this.mousePoint.x < 0 ||
+      this.mousePoint.x > this.canvas.width ||
+      this.mousePoint.y < 0 ||
+      this.mousePoint.y > this.canvas.height
+    ) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+
+    let isHandled = false;
+    if(this.activeShape !== null){
+      isHandled = this.activeShape.mousedownShape(this.mousePoint.x, this.mousePoint.y, this);
+    }
+
+console.log(isHandled);
+    if(isHandled === true){
+      return;
+    }
+ 
+    // this.clear(this.ghostRenderer, true);
+    // var l = this.shapes.length;
+
+    // use activeShape first, so the whole surface is selectable
+    const shapesToDraw: Array<Shape> = this.shapes.filter(
+      s => s !== this.activeShape
+    );
+    if (this.activeShape !== null) {
+      shapesToDraw.push(this.activeShape);
+    }
+
+    for (let i = shapesToDraw.length - 1; i >= 0; i--) {
+
+      if(shapesToDraw[i].isPointInShape(this.mousePoint.x, this.mousePoint.y, this)){
+
+        this.activeShape = shapesToDraw[i];
+        if (e.ctrlKey === true) {
+          this.shapes = this.shapes.filter(s => s !== this.activeShape);
+          this.activeShape = null;
+        } else {
+         // there is a new activeShape, do mousedown on shape
+         this.activeShape.mousedownShape(this.mousePoint.x, this.mousePoint.y, this);
+        }
+        this.invalidate();
+        return;
+      }
+    }
+    // havent returned means we have selected nothing
+    this.activeShape = null;
+    if (
+      this.shapes.length < this.config.maxNumberOfShapes ||
+      this.config.maxNumberOfShapes === Infinity
+    ) {
+      let shape: Shape;
+      switch (this.currentShapeType) {
+        case Shapes.Rectangle:
+          console.log("create rectangle", this.currentShapeType);
+          shape = new RectangleShape(this.mousePoint.x, this.mousePoint.y);
+          shape.isCreating = true;
+          shape.isResizeDrag = true;
+          shape.selectedSelectionHandle = shape.getSelectionHandle(
+            RectangleShape.BottomRight
+          ); // right-bottom
+          break;
+
+        case Shapes.Polygon:
+          console.log("create polygon", this.currentShapeType);
+          shape = new PolygonShape();
+          shape.addSelectionHandle(this.mousePoint.x, this.mousePoint.y);
+          shape.isCreating = true;
+          // shape.isResizeDrag = true;
+          // this.selectedSelectionHandle = shape.getSelectionHandle(0);
+          break;
+      }
+
+      if (shape !== null) {
+        this.shapes.push(shape);
+        this.activeShape = shape;
+      }
+    }
+    // clear the ghost canvas for next time
+    this.clear(this.ghostRenderer, true);
+    // invalidate because we might need the selection border to disappear
+    this.invalidate();
+  }
+
   myUp(e) {
     this.getMouse(e);
 
-    if (this.activeShape !== null && this.activeShape.isCreating) {
-      this.activeShape.isCreating = false;
-      const minimumDistance = 10;
-      if (
-        this.mousePoint.x > this.activeShape.centerX - minimumDistance &&
-        this.mousePoint.x < this.activeShape.centerX + minimumDistance &&
-        this.mousePoint.y > this.activeShape.centerY - minimumDistance &&
-        this.mousePoint.y < this.activeShape.centerY + minimumDistance
-      ) {
-        this.shapes = this.shapes.filter(s => s !== this.activeShape);
-        this.activeShape = null;
-        this.invalidate();
-      } else {
-         this.activeShape.isCreating = false;
-      }
-    }
-
     if(this.activeShape !== null){
-      this.activeShape.isDrag = false;
-      this.activeShape.isResizeDrag = false;
-      this.activeShape.isRotate = false;
+      this.activeShape.mouseupShape(this.mousePoint.x, this.mousePoint.y, this);
     }
-    this.selectedSelectionHandle = null;
+   
     this.canvas.style.cursor = "auto";
   }
 
@@ -507,122 +466,8 @@ export class DrawingContext {
 
     this.getMouse(e);
 
-    // Boundary detection
-    // if (this.isCreatingShape) {
-    //   //this.getMouse(e);
-    //   this.canvas.style.cursor = "move";
-    //   this.activeShape.resize(
-    //     this.mousePoint.x - this.mousePointOffsetX,
-    //     this.mousePoint.y - this.mousePointOffsetY,
-    //     this.expectResize, // right-bottom
-    //     this
-    //   );
-    //   this.invalidate();
-    // } else
-    if (this.activeShape !== null && this.activeShape.isDrag) {
-      // this.getMouse(e);
-      this.canvas.style.cursor = "move";
-
-      this.activeShape.moveShape(
-        this.mousePoint.x - this.mousePointOffsetX,
-        this.mousePoint.y - this.mousePointOffsetY,
-        this
-      );
-
-      // TODO: Add Check to Shape to check canvas bound per shape
-      // const bounds = this.canvas.getBoundingClientRect();
-      //    if (this.activeShape.x < bounds.left) { this.activeShape.x = bounds.left; }
-      //     if (this.activeShape.x + this.w > bounds.right) { this.activeShape.x = bounds.right - this.w; }
-      //     if (this.activeShape.y < bounds.top) { this.activeShape.y = bounds.top ; }
-      //     if (this.activeShape.y + this.h > bounds.bottom) { this.activeShape.y = bounds.bottom - this.h; }
-
-      // something is changing position so we better invalidate the canvas!
-      this.invalidate();
-      return;
-    } else if (this.activeShape !== null && this.activeShape.isResizeDrag) {
-      // this.getMouse(e);
-
-      this.activeShape.resizeShape(
-        this.mousePoint.x,
-        this.mousePoint.y,
-        this.selectedSelectionHandle,
-        this
-      );
-
-      this.invalidate();
-    } else if (this.activeShape !== null && this.activeShape.isRotate) {
-      // this.getMouse(e);
-      this.canvas.style.cursor = "grabbing";
-      const angleFromRotationhandleToCenter = Math.atan2(
-        this.activeShape.rotationHandleY - this.activeShape.centerY,
-        this.activeShape.rotationHandleX - this.activeShape.centerX
-      );
-      const angleFromMouseToCenter = Math.atan2(
-        this.mousePoint.y - this.activeShape.centerY,
-        this.mousePoint.x - this.activeShape.centerX
-      );
-
-      const rotationDegree = this.round(
-        ((angleFromMouseToCenter - angleFromRotationhandleToCenter) * 180) /
-          Math.PI,
-        3
-      );
-
-      // console.log(rotationDegree);
-      // console.log(rotationDegree, angleFromRotationhandleToCenter*180/Math.PI, angleFromMouseToCenter*180/Math.PI);
-      this.activeShape.rotationDegree = rotationDegree;
-      // console.log("Angle", this.activeShape.rotationDegree);
-
-      this.invalidate();
-    }
-
-    // if there's a selection see if we grabbed one of the selection handles
-    if (this.activeShape !== null && !this.activeShape.isResizeDrag && !this.activeShape.isRotate) {
-      // TODO: retutn SelectionHandle instance
-      this.selectedSelectionHandle = this.activeShape.getSelectionHandleByXY(
-        this.mousePoint.x,
-        this.mousePoint.y,
-        this
-      );
-      if (this.selectedSelectionHandle === null) {
-        // const cur = this.activeShape.rotationSelectionHandle;
-        const rotatedX =
-          (this.activeShape.rotationHandleX - this.activeShape.centerX) *
-            Math.cos(Shape.Radian * this.activeShape.rotationDegree) -
-          (this.activeShape.rotationHandleY - this.activeShape.centerY) *
-            Math.sin(Shape.Radian * this.activeShape.rotationDegree) +
-          this.activeShape.centerX;
-        const rotatedY =
-          (this.activeShape.rotationHandleX - this.activeShape.centerX) *
-            Math.sin(Shape.Radian * this.activeShape.rotationDegree) +
-          (this.activeShape.rotationHandleY - this.activeShape.centerY) *
-            Math.cos(Shape.Radian * this.activeShape.rotationDegree) +
-          this.activeShape.centerY;
-
-        if (
-          this.mousePoint.x >= rotatedX - this.activeShape.mySelBoxSize / 2 &&
-          this.mousePoint.x <= rotatedX + this.activeShape.mySelBoxSize / 2 &&
-          this.mousePoint.y >= rotatedY - this.activeShape.mySelBoxSize / 2 &&
-          this.mousePoint.y <= rotatedY + this.activeShape.mySelBoxSize / 2
-        ) {
-          // we found one!
-          this.selectedSelectionHandle = this.activeShape.rotationSelectionHandle;
-          this.canvas.style.cursor = "grab";
-          this.invalidate();
-          return;
-        }
-      }
-      if (this.selectedSelectionHandle === null) {
-        // not over a selection box, return to normal
-        this.activeShape.isResizeDrag = false;
-        this.activeShape.isRotate = false;
-        this.selectedSelectionHandle = null;
-        this.canvas.style.cursor = this.activeShape !== null && this.activeShape.isDrag ? "move" : "auto";
-      }
-    } else {
-      if (this.activeShape !== null && !this.activeShape.isResizeDrag) {
-        this.canvas.style.cursor = this.activeShape !== null && this.activeShape.isDrag ? "move" : "auto";
-      }
+    if(this.activeShape !== null){
+      this.activeShape.mousemoveShape(this.mousePoint.x, this.mousePoint.y, this);
     }
   }
 

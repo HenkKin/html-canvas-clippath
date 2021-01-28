@@ -8,7 +8,11 @@ export abstract class Shape {
   public isDrag = false;
   public isResizeDrag = false;
   public isRotate = false;
- 
+  public selectedSelectionHandle: SelectionHandle = null;
+
+  protected mousePointToCenterOffsetX: number;
+  protected mousePointToCenterOffsetY: number;
+
   protected selectionHandles: SelectionHandle[] = [];
   private _rotationSelectionHandle = new SelectionHandle(0, 0);
   get rotationSelectionHandle(): SelectionHandle {
@@ -93,8 +97,8 @@ export abstract class Shape {
 
   public abstract onSelectionHandleAdded(): void;
 
-  public getSelectionHandle(index:number): SelectionHandle | null {
-    if(this.selectionHandles.length > index){
+  public getSelectionHandle(index: number): SelectionHandle | null {
+    if (this.selectionHandles.length > index) {
       return this.selectionHandles[index];
     }
     return null;
@@ -208,11 +212,180 @@ export abstract class Shape {
     context: DrawingContext
   ): SelectionHandle;
 
-  abstract mousedown(x: number, y: number, context: DrawingContext): void;
+  public isPointInShape(
+    x: number,
+    y: number,
+    context: DrawingContext
+  ): boolean {
+    this.drawShape(context.ghostRenderer, context, true);
 
-  abstract mouseup(x: number, y: number, context: DrawingContext): void;
+    // get image data at the mouse x,y pixel
+    const imageData = context.ghostRenderer.getImageData(x, y, 1, 1);
 
-  abstract mousemove(x: number, y: number, context: DrawingContext): void;
+    context.clear(context.ghostRenderer, true);
+    // var index = (mousePoint.x + mousePoint.y * imageData.width) * 4;
+    // console.log(imageData.data);
+    // if the mouse pixel exists, select and break
+    return imageData.data[3] > 0;
+    // if (
+    //   this.ghostRenderer.isPointInPath(
+    //     shapesToDraw[i].shapePath,
+    //     this.mousePoint.x,
+    //     this.mousePoint.y
+    //   )
+    // ) {
+  }
+
+  public mousedownShape(
+    x: number,
+    y: number,
+    context: DrawingContext
+  ): boolean {
+    this.mousePointToCenterOffsetX = x - this.centerX;
+    this.mousePointToCenterOffsetY = y - this.centerY;
+
+    this.mousedown(x, y, context);
+
+    // we are over a selection box
+    if (this.selectedSelectionHandle !== null) {
+      // console.log('selectedSelect',this.selectedSelectionHandle, this.selectedSelectionHandle === this.activeShape.rotationSelectionHandle);
+      if (this.selectedSelectionHandle === this.rotationSelectionHandle) {
+        this.isRotate = true;
+      } else {
+        this.isResizeDrag = true;
+      }
+      return true;
+    }
+
+    // check dragging
+    if (this.isPointInShape(x, y, context)) {
+      console.log('isPointInShape true');
+      this.isDrag = true;
+      context.canvas.style.cursor = "move";
+      return true;
+    }
+
+    if (this.isCreating === true) {
+      return true;
+    }
+    return false;
+  }
+  protected abstract mousedown(
+    x: number,
+    y: number,
+    context: DrawingContext
+  ): void;
+
+  public mouseupShape(x: number, y: number, context: DrawingContext): void {
+    this.mouseup(x, y, context);
+    this.isDrag = false;
+    this.isResizeDrag = false;
+    this.isRotate = false;
+    this.selectedSelectionHandle = null;
+  }
+  protected abstract mouseup(
+    x: number,
+    y: number,
+    context: DrawingContext
+  ): void;
+
+  public mousemoveShape(x: number, y: number, context: DrawingContext): void {
+    this.mousemove(x, y, context);
+
+    if (this.isDrag) {
+      // this.getMouse(e);
+      context.canvas.style.cursor = "move";
+
+      this.moveShape(
+        x - this.mousePointToCenterOffsetX,
+        y - this.mousePointToCenterOffsetY,
+        context
+      );
+      // something is changing position so we better invalidate the canvas!
+      context.invalidate();
+      return;
+    } else if (this.isResizeDrag) {
+      // this.getMouse(e);
+
+      this.resizeShape(x, y, this.selectedSelectionHandle, context);
+
+      context.invalidate();
+    } else if (this.isRotate) {
+      // this.getMouse(e);
+      context.canvas.style.cursor = "grabbing";
+      const angleFromRotationhandleToCenter = Math.atan2(
+        this.rotationHandleY - this.centerY,
+        this.rotationHandleX - this.centerX
+      );
+      const angleFromMouseToCenter = Math.atan2(
+        y - this.centerY,
+        x - this.centerX
+      );
+
+      const rotationDegree = this.round(
+        ((angleFromMouseToCenter - angleFromRotationhandleToCenter) * 180) /
+          Math.PI,
+        3
+      );
+
+      // console.log(rotationDegree);
+      // console.log(rotationDegree, angleFromRotationhandleToCenter*180/Math.PI, angleFromMouseToCenter*180/Math.PI);
+      this.rotationDegree = rotationDegree;
+      // console.log("Angle", this.rotationDegree);
+
+      context.invalidate();
+    }
+
+    // if there's a selection see if we grabbed one of the selection handles
+    if (this !== null && !this.isResizeDrag && !this.isRotate) {
+      // TODO: retutn SelectionHandle instance
+      this.selectedSelectionHandle = this.getSelectionHandleByXY(x, y, context);
+      if (this.selectedSelectionHandle === null) {
+        // const cur = this.rotationSelectionHandle;
+        const rotatedX =
+          (this.rotationHandleX - this.centerX) *
+            Math.cos(Shape.Radian * this.rotationDegree) -
+          (this.rotationHandleY - this.centerY) *
+            Math.sin(Shape.Radian * this.rotationDegree) +
+          this.centerX;
+        const rotatedY =
+          (this.rotationHandleX - this.centerX) *
+            Math.sin(Shape.Radian * this.rotationDegree) +
+          (this.rotationHandleY - this.centerY) *
+            Math.cos(Shape.Radian * this.rotationDegree) +
+          this.centerY;
+
+        if (
+          x >= rotatedX - this.mySelBoxSize / 2 &&
+          x <= rotatedX + this.mySelBoxSize / 2 &&
+          y >= rotatedY - this.mySelBoxSize / 2 &&
+          y <= rotatedY + this.mySelBoxSize / 2
+        ) {
+          // we found one!
+          this.selectedSelectionHandle = this.rotationSelectionHandle;
+          context.canvas.style.cursor = "grab";
+          context.invalidate();
+          return;
+        }
+      }
+      if (this.selectedSelectionHandle === null) {
+        // not over a selection box, return to normal
+        this.isResizeDrag = false;
+        this.isRotate = false;
+        this.selectedSelectionHandle = null;
+        context.canvas.style.cursor = this.isDrag ? "move" : "auto";
+      }
+    } else {
+      if (!this.isResizeDrag) {
+        context.canvas.style.cursor = this.isDrag ? "move" : "auto";
+      }
+    }
+  }
+  protected abstract mousemove(
+    x: number,
+    y: number,
+    context: DrawingContext
+  ): void;
 
   // setPosition(x: number, y: number) {
   //   this._x = x;
