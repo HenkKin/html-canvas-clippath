@@ -4,10 +4,10 @@ import { PolygonShape } from "./Shapes/PolygonShape";
 import { RectangleShape } from "./Shapes/RectangleShape";
 import { Shape } from "./Shapes/Shape";
 
-enum Shapes{
+enum Shapes {
   Rectangle = 0,
-  Polygon = 1,
-} 
+  Polygon = 1
+}
 
 export class DrawingContext {
   canvas: HTMLCanvasElement;
@@ -21,13 +21,12 @@ export class DrawingContext {
   stylePaddingTop: number;
   styleBorderLeft: number;
   styleBorderTop: number;
-  currentShapeType = Shapes.Rectangle;
-  // currentShapeType = Shapes.Polygon;
+  // currentShapeType = Shapes.Rectangle;
+  currentShapeType = Shapes.Polygon;
 
   INTERVAL = 20; // how often, in milliseconds, we check to see if a redraw is needed
 
   mousePoint: Point;
-
 
   canvasValid = true;
   // expectResize = -1; // New, will save the # of the selection handle if the mouse is over one.
@@ -191,7 +190,7 @@ export class DrawingContext {
 
     // this.addPolygonShape("rgba(150,150,250,0.7)");
   }
- 
+
   // wipes the canvas context
   clear(c: CanvasRenderingContext2D, isGhostContext: boolean) {
     c.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -357,7 +356,7 @@ export class DrawingContext {
     }
   }
 
-   // Happens when the mouse is clicked in the canvas
+  // Happens when the mouse is clicked in the canvas
   myDown(e: MouseEvent) {
     this.getMouse(e);
     // console.log(this.mousePoint);
@@ -375,17 +374,18 @@ export class DrawingContext {
     }
 
     let isHandled = false;
-    if(this.activeShape !== null){
-      isHandled = this.activeShape.mousedownShape(this.mousePoint.x, this.mousePoint.y, this);
+    if (this.activeShape !== null) {
+      isHandled = this.activeShape.mousedownShape(
+        e,
+        this.mousePoint.x,
+        this.mousePoint.y,
+        this
+      );
     }
 
-console.log(isHandled);
-    if(isHandled === true){
+    if (isHandled === true) {
       return;
     }
- 
-    // this.clear(this.ghostRenderer, true);
-    // var l = this.shapes.length;
 
     // use activeShape first, so the whole surface is selectable
     const shapesToDraw: Array<Shape> = this.shapes.filter(
@@ -396,17 +396,21 @@ console.log(isHandled);
     }
 
     for (let i = shapesToDraw.length - 1; i >= 0; i--) {
-
-      if(shapesToDraw[i].isPointInShape(this.mousePoint.x, this.mousePoint.y, this)){
-
+      if (
+        shapesToDraw[i].isPointInShape(
+          this.mousePoint.x,
+          this.mousePoint.y,
+          this
+        )
+      ) {
         this.activeShape = shapesToDraw[i];
-        if (e.ctrlKey === true) {
-          this.shapes = this.shapes.filter(s => s !== this.activeShape);
-          this.activeShape = null;
-        } else {
-         // there is a new activeShape, do mousedown on shape
-         this.activeShape.mousedownShape(this.mousePoint.x, this.mousePoint.y, this);
-        }
+        // there is a new activeShape, do mousedown on activeshape
+        this.activeShape.mousedownShape(
+          e,
+          this.mousePoint.x,
+          this.mousePoint.y,
+          this
+        );
         this.invalidate();
         return;
       }
@@ -420,7 +424,7 @@ console.log(isHandled);
       let shape: Shape;
       switch (this.currentShapeType) {
         case Shapes.Rectangle:
-          console.log("create rectangle", this.currentShapeType);
+          // console.log("create rectangle", this.currentShapeType);
           shape = new RectangleShape(this.mousePoint.x, this.mousePoint.y);
           shape.isCreating = true;
           shape.isResizeDrag = true;
@@ -430,9 +434,9 @@ console.log(isHandled);
           break;
 
         case Shapes.Polygon:
-          console.log("create polygon", this.currentShapeType);
+          // console.log("create polygon", this.currentShapeType);
           shape = new PolygonShape();
-          shape.addSelectionHandle(this.mousePoint.x, this.mousePoint.y);
+          // shape.addSelectionHandle(this.mousePoint.x, this.mousePoint.y);
           shape.isCreating = true;
           // shape.isResizeDrag = true;
           // this.selectedSelectionHandle = shape.getSelectionHandle(0);
@@ -444,20 +448,18 @@ console.log(isHandled);
         this.activeShape = shape;
       }
     }
-    // clear the ghost canvas for next time
-    this.clear(this.ghostRenderer, true);
     // invalidate because we might need the selection border to disappear
     this.invalidate();
   }
 
-  myUp(e) {
+  myUp(e: MouseEvent) {
     this.getMouse(e);
 
-    if(this.activeShape !== null){
-      this.activeShape.mouseupShape(this.mousePoint.x, this.mousePoint.y, this);
+    if (this.activeShape !== null) {
+      this.activeShape.mouseupShape(e, this.mousePoint.x, this.mousePoint.y, this);
     }
-   
-    this.canvas.style.cursor = "auto";
+
+    // this.canvas.style.cursor = "auto";
   }
 
   // Happens when the mouse is moving inside the canvas
@@ -466,13 +468,12 @@ console.log(isHandled);
 
     this.getMouse(e);
 
-    if(this.activeShape !== null){
-      this.activeShape.mousemoveShape(this.mousePoint.x, this.mousePoint.y, this);
+    if (this.activeShape !== null) {
+      this.activeShape.mousemoveShape(e,
+        this.mousePoint.x,
+        this.mousePoint.y,
+        this
+      );
     }
-  }
-
-  private round(val: number, decimals: number): number {
-    // return val;
-    return +val.toFixed(decimals);
   }
 }

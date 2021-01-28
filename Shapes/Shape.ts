@@ -109,6 +109,9 @@ export abstract class Shape {
     context: DrawingContext,
     isGhostContext: boolean
   ): void {
+    if (this.selectionHandles.length === 0) {
+      return;
+    }
     renderer.save();
     this.rotateCanvas(renderer);
     renderer.save();
@@ -237,14 +240,22 @@ export abstract class Shape {
   }
 
   public mousedownShape(
+    e: MouseEvent,
     x: number,
     y: number,
     context: DrawingContext
   ): boolean {
+    if (e.ctrlKey === true && this.isPointInShape(x, y, context)) {
+      context.shapes = context.shapes.filter(s => s !== this);
+      context.activeShape = null;
+      context.invalidate();
+      return true;
+    }
+
     this.mousePointToCenterOffsetX = x - this.centerX;
     this.mousePointToCenterOffsetY = y - this.centerY;
 
-    this.mousedown(x, y, context);
+    this.mousedown(e, x, y, context);
 
     // we are over a selection box
     if (this.selectedSelectionHandle !== null) {
@@ -257,41 +268,47 @@ export abstract class Shape {
       return true;
     }
 
+    if (this.isCreating === true) {
+      return true;
+    }
+
     // check dragging
     if (this.isPointInShape(x, y, context)) {
-      console.log('isPointInShape true');
+      // console.log("isPointInShape true");
       this.isDrag = true;
       context.canvas.style.cursor = "move";
       return true;
     }
-
-    if (this.isCreating === true) {
-      return true;
-    }
     return false;
   }
+
   protected abstract mousedown(
+    e: MouseEvent, 
     x: number,
     y: number,
     context: DrawingContext
   ): void;
 
-  public mouseupShape(x: number, y: number, context: DrawingContext): void {
-    this.mouseup(x, y, context);
+  public mouseupShape(
+    e: MouseEvent,
+    x: number,
+    y: number,
+    context: DrawingContext
+  ): void {
+    this.mouseup(e, x, y, context);
     this.isDrag = false;
     this.isResizeDrag = false;
     this.isRotate = false;
     this.selectedSelectionHandle = null;
   }
   protected abstract mouseup(
+    e: MouseEvent, 
     x: number,
     y: number,
     context: DrawingContext
   ): void;
 
-  public mousemoveShape(x: number, y: number, context: DrawingContext): void {
-    this.mousemove(x, y, context);
-
+  public mousemoveShape(e: MouseEvent, x: number, y: number, context: DrawingContext): void {
     if (this.isDrag) {
       // this.getMouse(e);
       context.canvas.style.cursor = "move";
@@ -310,6 +327,7 @@ export abstract class Shape {
       this.resizeShape(x, y, this.selectedSelectionHandle, context);
 
       context.invalidate();
+      return;
     } else if (this.isRotate) {
       // this.getMouse(e);
       context.canvas.style.cursor = "grabbing";
@@ -334,54 +352,62 @@ export abstract class Shape {
       // console.log("Angle", this.rotationDegree);
 
       context.invalidate();
+      return;
     }
-
     // if there's a selection see if we grabbed one of the selection handles
-    if (this !== null && !this.isResizeDrag && !this.isRotate) {
-      // TODO: retutn SelectionHandle instance
-      this.selectedSelectionHandle = this.getSelectionHandleByXY(x, y, context);
-      if (this.selectedSelectionHandle === null) {
-        // const cur = this.rotationSelectionHandle;
-        const rotatedX =
-          (this.rotationHandleX - this.centerX) *
-            Math.cos(Shape.Radian * this.rotationDegree) -
-          (this.rotationHandleY - this.centerY) *
-            Math.sin(Shape.Radian * this.rotationDegree) +
-          this.centerX;
-        const rotatedY =
-          (this.rotationHandleX - this.centerX) *
-            Math.sin(Shape.Radian * this.rotationDegree) +
-          (this.rotationHandleY - this.centerY) *
-            Math.cos(Shape.Radian * this.rotationDegree) +
-          this.centerY;
+    // if (!this.isResizeDrag && !this.isRotate) {
 
-        if (
-          x >= rotatedX - this.mySelBoxSize / 2 &&
-          x <= rotatedX + this.mySelBoxSize / 2 &&
-          y >= rotatedY - this.mySelBoxSize / 2 &&
-          y <= rotatedY + this.mySelBoxSize / 2
-        ) {
-          // we found one!
-          this.selectedSelectionHandle = this.rotationSelectionHandle;
-          context.canvas.style.cursor = "grab";
-          context.invalidate();
-          return;
-        }
-      }
-      if (this.selectedSelectionHandle === null) {
-        // not over a selection box, return to normal
-        this.isResizeDrag = false;
-        this.isRotate = false;
-        this.selectedSelectionHandle = null;
-        context.canvas.style.cursor = this.isDrag ? "move" : "auto";
-      }
-    } else {
-      if (!this.isResizeDrag) {
-        context.canvas.style.cursor = this.isDrag ? "move" : "auto";
+    this.selectedSelectionHandle = this.getSelectionHandleByXY(x, y, context);
+    if (this.selectedSelectionHandle === null) {
+      // const cur = this.rotationSelectionHandle;
+      const rotatedX =
+        (this.rotationHandleX - this.centerX) *
+          Math.cos(Shape.Radian * this.rotationDegree) -
+        (this.rotationHandleY - this.centerY) *
+          Math.sin(Shape.Radian * this.rotationDegree) +
+        this.centerX;
+      const rotatedY =
+        (this.rotationHandleX - this.centerX) *
+          Math.sin(Shape.Radian * this.rotationDegree) +
+        (this.rotationHandleY - this.centerY) *
+          Math.cos(Shape.Radian * this.rotationDegree) +
+        this.centerY;
+
+      if (
+        x >= rotatedX - this.mySelBoxSize / 2 &&
+        x <= rotatedX + this.mySelBoxSize / 2 &&
+        y >= rotatedY - this.mySelBoxSize / 2 &&
+        y <= rotatedY + this.mySelBoxSize / 2
+      ) {
+        // we found one!
+        this.selectedSelectionHandle = this.rotationSelectionHandle;
+        context.canvas.style.cursor = "grab";
+        context.invalidate();
+        return;
       }
     }
+    if (this.selectedSelectionHandle === null) {
+      // not over a selection box, return to normal
+      this.isResizeDrag = false;
+      this.isRotate = false;
+      this.selectedSelectionHandle = null;
+      context.canvas.style.cursor = this.isDrag
+        ? "move"
+        : this.isCreating
+        ? "crosshair"
+        : "auto";
+    }
+
+    this.mousemove(e, x, y, context);
+
+    // } else {
+    //   if (!this.isResizeDrag) {
+    //     context.canvas.style.cursor = this.isDrag ? "move" : "auto";
+    //   }
+    // }
   }
   protected abstract mousemove(
+    e: MouseEvent, 
     x: number,
     y: number,
     context: DrawingContext

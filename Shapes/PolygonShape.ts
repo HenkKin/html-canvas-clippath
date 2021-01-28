@@ -1,5 +1,4 @@
 import { DrawingContext } from "../DrawingContext";
-import { Point } from "../Point";
 import { SelectionHandle } from "../SelectionHandle";
 import { Shape } from "../Shapes/Shape";
 
@@ -21,16 +20,35 @@ export class PolygonShape extends Shape {
     this.centerY = newCenter[1];
   }
 
-  mousedown(x: number, y: number, context: DrawingContext): void {
-   
-  }
-  mouseup(x: number, y: number, context: DrawingContext): void {
- if(this.isCreating === true && this.isResizeDrag === false && this.isRotate === false && this.isDrag === false){
-      this.addSelectionHandle(x, y);
+  mousedown(e: MouseEvent, x: number, y: number, context: DrawingContext): void {
+    if (
+      this.getSelectionHandleByXY(x, y, context) === this.selectionHandles[0]
+    ) {
+      this.isCreating = false;
       context.invalidate();
     }
   }
-  mousemove(x: number, y: number, context: DrawingContext): void {}
+  mouseup(e: MouseEvent, x: number, y: number, context: DrawingContext): void {
+    if (e.ctrlKey === false 
+      this.isCreating === true &&
+      this.isResizeDrag === false &&
+      this.isRotate === false &&
+      this.isDrag === false
+    ) {
+      const newHandle = new SelectionHandle(x, y);
+      this.selectionHandles.push(newHandle);
+      this.resize(x, y, newHandle, context);
+      context.invalidate();
+    }
+  }
+  mousemove(e: MouseEvent, x: number, y: number, context: DrawingContext): void {
+    if (
+      this.isCreating &&
+      this.getSelectionHandleByXY(x, y, context) === this.selectionHandles[0]
+    ) {
+      context.canvas.style.cursor = "crosshair";
+    }
+  }
 
   private calculateCenter(): number[] {
     return this.calculateCenterOfPoints(
@@ -91,7 +109,10 @@ export class PolygonShape extends Shape {
     for (const selectionHandle of this.selectionHandles.slice(1)) {
       path.lineTo(selectionHandle.x, selectionHandle.y);
     }
-    path.closePath();
+
+    if (this.isCreating === false) {
+      path.closePath();
+    }
 
     renderer.fill(path);
     return path;
@@ -189,92 +210,9 @@ export class PolygonShape extends Shape {
       this.selectionHandles[i].y = unrotatedY;
     }
 
-    // set new unrotated mous position as selected handle position
-    // selectionHandle.x = unrotatedX;
-    // selectionHandle.y = unrotatedY;
-
-    // const rotatedSelectionHandleX =
-    //   (selectionHandle.x - this.centerX) * Math.cos(Shape.Radian * this.rotationDegree) -
-    //   (selectionHandle.y - this.centerY) * Math.sin(Shape.Radian * this.rotationDegree) +
-    //   this.centerX;
-
-    // const rotatedSelectionHandleY =
-    //   (selectionHandle.x - this.centerX) * Math.sin(Shape.Radian * this.rotationDegree) +
-    //   (selectionHandle.y - this.centerY) * Math.cos(Shape.Radian * this.rotationDegree) +
-    //   this.centerY;
-
-    // const offsetX = x - rotatedSelectionHandleX;
-    // const offsetY = y - rotatedSelectionHandleY;
-
-    // selectionHandle.x =
-    //   (selectionHandle.x - this.centerX) * Math.cos(Shape.Radian * this.rotationDegree) -
-    //   (selectionHandle.y - this.centerY) * Math.sin(Shape.Radian * this.rotationDegree) +
-    //   this.centerX;
-
-    // const rotatedSelectionHandleY =
-    //   (selectionHandle.x - this.centerX) * Math.sin(Shape.Radian * this.rotationDegree) +
-    //   (selectionHandle.y - this.centerY) * Math.cos(Shape.Radian * this.rotationDegree) +
-    //   this.centerY;
-
-    // rotate all handles
-
-    //     this.selectionHandles.forEach(handle => {
-
-    //  const oppositeHandle = this.rotate(handle.x, handle.y,this.centerX, this.centerY, Math.sin(Shape.Radian * this.rotationDegree));
-
-    //     const newOppositeHandle = this.rotate(
-    //       oppositeHandle[0],
-    //       oppositeHandle[1],
-    //       newCenter[0],
-    //       newCenter[1],
-    //       -angle
-    //     );
-    //     });
-
-    // const unrotatedX =
-    //   (x - this.centerX) * Math.cos(Shape.Radian * -this.rotationDegree) -
-    //   (y - this.centerY) * Math.sin(Shape.Radian * -this.rotationDegree) +
-    //   this.centerX;
-    // const unrotatedY =
-    //   (x - this.centerX) * Math.sin(Shape.Radian * -this.rotationDegree) +
-    //   (y - this.centerY) * Math.cos(Shape.Radian * -this.rotationDegree) +
-    //   this.centerY;
-
-    // const rotatedSelectionHandleX =
-    //   (x - this.centerX) * Math.cos(Shape.Radian * this.rotationDegree) -
-    //   (y - this.centerY) * Math.sin(Shape.Radian * this.rotationDegree) +
-    //   this.centerX;
-
-    // const rotatedSelectionHandleY =
-    //   (selectionHandle.x - this.centerX) * Math.sin(Shape.Radian * this.rotationDegree) +
-    //   (selectionHandle.y - this.centerY) * Math.cos(Shape.Radian * this.rotationDegree) +
-    //   this.centerY;
-
-    // const offsetX = x - rotatedSelectionHandleX;
-    // const offsetY = y - rotatedSelectionHandleY;
-
     this.centerX = newCenter[0];
     this.centerY = newCenter[1];
 
-    // const offsetCenterX = newCenter[0] - this.centerX;
-    // const offsetCenterY = newCenter[1] - this.centerY;
-
-    // this.selectionHandles.forEach(handle => {
-    //   if(handle !== selectionHandle){
-    //     handle.x -= offsetCenterX;
-    //     handle.y -= offsetCenterY;
-    //   }
-    // });
-
-    // // if (selectionHandle !== null) {
-    // // const unrotatedMouseHandle = this.rotate(x, y, this.centerX, this.centerY, -this.rotationDegree * Shape.Radian);
-    // const unrotatedMouseHandle = this.rotate(x, y, this.centerX, this.centerY, -this.rotationDegree * Shape.Radian);
-
-    //   selectionHandle.x = unrotatedMouseHandle[0];
-    //   selectionHandle.y = unrotatedMouseHandle[1];
-
-    // selectionHandle.x = rotatedX;
-    // selectionHandle.y = rotatedY;
     this.drawPoint(
       renderer,
       selectionHandle.x,
