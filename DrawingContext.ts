@@ -160,6 +160,10 @@ export class DrawingContext {
     };
     // add custom initialization here:
 
+    const shape = new PolygonShape();
+    shape.setClipPath('polygon(63.06335% 9.40018%, 82.55963% 47.83426%, 18.27663% 42.35742%)', this);
+    this.shapes.push(shape);
+    this.activeShape = shape;
     // const shape = new RectangleShape(0,0);
     // // rotationDegree moet zijn -50.3
     // shape.setClipPath('polygon(9.494% 75.976%, 19.715% 67.304%, 29.936% 58.632%, 46.645% 68.403%, 63.353% 78.173%, 53.132% 86.845%, 42.911% 95.517%, 26.202% 85.746%)', this);
@@ -180,7 +184,7 @@ export class DrawingContext {
     // // add a smaller purple rectangle
     // this.addRect(45, 60, 25, 25, 'rgba(150,150,250,0.7)');
 
-    // this.addPolygonShape('rgba(150,150,250,0.7)');
+    // this.addPolygonShape("rgba(150,150,250,0.7)");
   }
   // Happens when the mouse is clicked in the canvas
   myDown(e: MouseEvent) {
@@ -252,15 +256,15 @@ export class DrawingContext {
         } else {
           this.mousePointOffsetX = this.mousePoint.x - this.activeShape.centerX;
           this.mousePointOffsetY = this.mousePoint.y - this.activeShape.centerY;
-          this.activeShape.moveShape(
-            this.mousePoint.x - this.mousePointOffsetX,
-            this.mousePoint.y - this.mousePointOffsetY,
-            this
-          );
+          // this.activeShape.moveShape(
+          //   this.mousePoint.x - this.mousePointOffsetX,
+          //   this.mousePoint.y - this.mousePointOffsetY,
+          //   this
+          // );
           this.isDrag = true;
           this.canvas.style.cursor = "move";
         }
-        this.invalidate();
+        // this.invalidate();
         this.clear(this.ghostRenderer, true);
         return;
       }
@@ -277,8 +281,9 @@ export class DrawingContext {
       this.isCreatingShape = true;
       this.isCreatingShapeX = this.mousePoint.x;
       this.isCreatingShapeY = this.mousePoint.y;
-      this.selectedSelectionHandle =
-        shape.selectionHandles[RectangleShape.BottomRight]; // right-bottom
+      this.selectedSelectionHandle = shape.getSelectionHandle(
+        RectangleShape.BottomRight
+      ); // right-bottom
       this.isResizeDrag = true;
     }
     // clear the ghost canvas for next time
@@ -361,9 +366,9 @@ export class DrawingContext {
 
   addPolygonShape(fill) {
     const polygon = new PolygonShape();
-    polygon.selectionHandles.push(new SelectionHandle(10, 10));
-    polygon.selectionHandles.push(new SelectionHandle(150, 30));
-    polygon.selectionHandles.push(new SelectionHandle(75, 150));
+    polygon.addSelectionHandle(150, 150);
+    polygon.addSelectionHandle(450, 150);
+    polygon.addSelectionHandle(300, 450);
     // polygon.fill = fill;
     this.shapes.push(polygon);
     this.activeShape = polygon;
@@ -452,7 +457,7 @@ export class DrawingContext {
   myUp(e) {
     this.getMouse(e);
 
-    if (this.isCreatingShape) {
+    if (this.isCreatingShape && this.activeShape !== null) {
       this.isCreatingShape = false;
       const minimumDistance = 10;
       if (
@@ -464,6 +469,8 @@ export class DrawingContext {
         this.shapes = this.shapes.filter(s => s !== this.activeShape);
         this.activeShape = null;
         this.invalidate();
+      } else {
+        this.activeShape.isShapeReady = true;
       }
     }
     this.isDrag = false;
@@ -542,7 +549,7 @@ export class DrawingContext {
 
       // console.log(rotationDegree);
       // console.log(rotationDegree, angleFromRotationhandleToCenter*180/Math.PI, angleFromMouseToCenter*180/Math.PI);
-      this.activeShape.rotationDegree = rotationDegree;
+      this.activeShape.rotationDegree = rotationDegree; 
       // console.log("Angle", this.activeShape.rotationDegree);
 
       this.invalidate();
@@ -551,7 +558,7 @@ export class DrawingContext {
     // if there's a selection see if we grabbed one of the selection handles
     if (this.activeShape !== null && !this.isResizeDrag && !this.isRotate) {
       // TODO: retutn SelectionHandle instance
-      this.selectedSelectionHandle = this.activeShape.getSelectionHandle(
+      this.selectedSelectionHandle = this.activeShape.getSelectionHandleByXY(
         this.mousePoint.x,
         this.mousePoint.y,
         this

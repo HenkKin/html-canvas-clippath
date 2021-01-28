@@ -5,7 +5,7 @@ export class DrawingConfig {
    *
    */
   constructor(config?: DrawingConfig) {
-    this.maxNumberOfShapes = config?.maxNumberOfShapes ?? 1;
+    this.maxNumberOfShapes = config?.maxNumberOfShapes ?? 10;
   }
   // numPoints: number;
   // allowUpload: boolean;

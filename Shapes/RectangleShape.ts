@@ -58,6 +58,10 @@ export class RectangleShape extends Shape {
     this.adjustSelectionHandles();
   }
 
+  public onSelectionHandleAdded(): void {
+}
+
+
   setClipPath(clipPath: string, context: DrawingContext) {
     super.setClipPath(clipPath, context);
 
@@ -173,7 +177,7 @@ export class RectangleShape extends Shape {
 
   } // end draw
 
-  getSelectionHandle(x: number, y: number, context: DrawingContext): SelectionHandle {
+  getSelectionHandleByXY(x: number, y: number, context: DrawingContext): SelectionHandle {
     let expectResize = -1;
     for (let i = 0; i < this.selectionHandles.length; i++) {
       // 0  1  2

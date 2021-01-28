@@ -1,7 +1,7 @@
-import { DrawingContext } from '../DrawingContext';
-import { Point } from '../Point';
-import { SelectionHandle } from '../SelectionHandle';
-import { Shape } from '../Shapes/Shape';
+import { DrawingContext } from "../DrawingContext";
+import { Point } from "../Point";
+import { SelectionHandle } from "../SelectionHandle";
+import { Shape } from "../Shapes/Shape";
 
 export class PolygonShape extends Shape {
   get rotationHandleX(): number {
@@ -14,21 +14,37 @@ export class PolygonShape extends Shape {
   constructor() {
     super();
   }
+  public onSelectionHandleAdded(): void {
+    const newCenter = this.calculateCenter();
 
-  mousedown(x: number, y: number, context: DrawingContext): void { }
-  mouseup(x: number, y: number, context: DrawingContext): void { }
-  mousemove(x: number, y: number, context: DrawingContext): void { }
+    this.centerX = newCenter[0];
+    this.centerY = newCenter[1];
+  }
+
+  mousedown(x: number, y: number, context: DrawingContext): void {}
+  mouseup(x: number, y: number, context: DrawingContext): void {}
+  mousemove(x: number, y: number, context: DrawingContext): void {}
 
   private calculateCenter(): number[] {
+    return this.calculateCenterOfPoints(
+      this.selectionHandles.map(handle => {
+        return { x: handle.x, y: handle.y };
+      })
+    );
+  }
+
+  private calculateCenterOfPoints(
+    points: { x: number; y: number }[]
+  ): number[] {
     let sumX = 0;
     let sumY = 0;
-    for (let i = 0; i < this.selectionHandles.length; i++) {
-      sumX += this.selectionHandles[i].x;
-      sumY += this.selectionHandles[i].y;
+    for (let i = 0; i < points.length; i++) {
+      sumX += points[i].x;
+      sumY += points[i].y;
     }
 
-    const centerX = sumX / this.selectionHandles.length;
-    const centerY = sumY / this.selectionHandles.length;
+    const centerX = sumX / points.length;
+    const centerY = sumY / points.length;
     return [centerX, centerY];
   }
   protected draw(
@@ -40,10 +56,10 @@ export class PolygonShape extends Shape {
       return;
     }
 
-    const newCenter = this.calculateCenter();
+    // const newCenter = this.calculateCenter();
 
-    this.centerX = newCenter[0];
-    this.centerY = newCenter[1];
+    // this.centerX = newCenter[0];
+    // this.centerY = newCenter[1];
     // const bounds = context.canvas.getBoundingClientRect();
     // if (this.x < bounds.left) {
     //   this.x = bounds.left;
@@ -71,11 +87,10 @@ export class PolygonShape extends Shape {
     path.closePath();
 
     renderer.fill(path);
-
     return path;
   } // end draw
 
-  getSelectionHandle(
+  getSelectionHandleByXY(
     x: number,
     y: number,
     context: DrawingContext
@@ -105,7 +120,7 @@ export class PolygonShape extends Shape {
       ) {
         // we found one!
         expectResize = i;
-        context.canvas.style.cursor = 'move';
+        context.canvas.style.cursor = "move";
         // context.invalidate();
       }
     }
@@ -124,20 +139,53 @@ export class PolygonShape extends Shape {
   ) {
     // time ro resize!
     const renderer = context.renderer;
-    this.drawPoint(renderer, x, y, this.mySelWidth / 2, 'blue');
+    this.drawPoint(renderer, x, y, this.mySelWidth / 2, "blue");
 
-    const unrotatedX =
-      (x - this.centerX) * Math.cos(Shape.Radian * -this.rotationDegree) -
-      (y - this.centerY) * Math.sin(Shape.Radian * -this.rotationDegree) +
-      this.centerX;
-    const unrotatedY =
-      (x - this.centerX) * Math.sin(Shape.Radian * -this.rotationDegree) +
-      (y - this.centerY) * Math.cos(Shape.Radian * -this.rotationDegree) +
-      this.centerY;
+    let rotatedPoints: { x: number; y: number }[] = this.selectionHandles.map(
+      handle => {
+        if (handle === selectionHandle) {
+          return { x: x, y: y };
+        }
+        const rotatedX =
+          (handle.x - this.centerX) *
+            Math.cos(Shape.Radian * this.rotationDegree) -
+          (handle.y - this.centerY) *
+            Math.sin(Shape.Radian * this.rotationDegree) +
+          this.centerX;
+        const rotatedY =
+          (handle.x - this.centerX) *
+            Math.sin(Shape.Radian * this.rotationDegree) +
+          (handle.y - this.centerY) *
+            Math.cos(Shape.Radian * this.rotationDegree) +
+          this.centerY;
+        return { x: rotatedX, y: rotatedY };
+      }
+    );
+
+    const newCenter = this.calculateCenterOfPoints(rotatedPoints);
+
+    for (let i = 0; i < rotatedPoints.length; i++) {
+      const unrotatedX =
+        (rotatedPoints[i].x - newCenter[0]) *
+          Math.cos(Shape.Radian * -this.rotationDegree) -
+        (rotatedPoints[i].y - newCenter[1]) *
+          Math.sin(Shape.Radian * -this.rotationDegree) +
+        newCenter[0];
+      const unrotatedY =
+        (rotatedPoints[i].x - newCenter[0]) *
+          Math.sin(Shape.Radian * -this.rotationDegree) +
+        (rotatedPoints[i].y - newCenter[1]) *
+          Math.cos(Shape.Radian * -this.rotationDegree) +
+        newCenter[1];
+
+      this.selectionHandles[i].x = unrotatedX;
+      this.selectionHandles[i].y = unrotatedY;
+    }
 
     // set new unrotated mous position as selected handle position
-    selectionHandle.x = unrotatedX;
-    selectionHandle.y = unrotatedY;
+    // selectionHandle.x = unrotatedX;
+    // selectionHandle.y = unrotatedY;
+
     // const rotatedSelectionHandleX =
     //   (selectionHandle.x - this.centerX) * Math.cos(Shape.Radian * this.rotationDegree) -
     //   (selectionHandle.y - this.centerY) * Math.sin(Shape.Radian * this.rotationDegree) +
@@ -198,10 +246,8 @@ export class PolygonShape extends Shape {
     // const offsetX = x - rotatedSelectionHandleX;
     // const offsetY = y - rotatedSelectionHandleY;
 
-    selectionHandle.x = unrotatedX;
-    selectionHandle.y = unrotatedY;
-
-    const newCenter = this.calculateCenter();
+    this.centerX = newCenter[0];
+    this.centerY = newCenter[1];
 
     // const offsetCenterX = newCenter[0] - this.centerX;
     // const offsetCenterY = newCenter[1] - this.centerY;
@@ -213,7 +259,6 @@ export class PolygonShape extends Shape {
     //   }
     // });
 
-
     // // if (selectionHandle !== null) {
     // // const unrotatedMouseHandle = this.rotate(x, y, this.centerX, this.centerY, -this.rotationDegree * Shape.Radian);
     // const unrotatedMouseHandle = this.rotate(x, y, this.centerX, this.centerY, -this.rotationDegree * Shape.Radian);
@@ -223,12 +268,23 @@ export class PolygonShape extends Shape {
 
     // selectionHandle.x = rotatedX;
     // selectionHandle.y = rotatedY;
-    this.drawPoint(renderer, selectionHandle.x, selectionHandle.y, this.mySelWidth / 2, 'green');
+    this.drawPoint(
+      renderer,
+      selectionHandle.x,
+      selectionHandle.y,
+      this.mySelWidth / 2,
+      "green"
+    );
     context.invalidate();
     // }
   }
 
   protected move(x: number, y: number, context: DrawingContext): void {
+    const newCenter = this.calculateCenter();
+
+    this.centerX = newCenter[0];
+    this.centerY = newCenter[1];
+
     // if (this.selectionHandles.length > 0) {
     //   const moveX = x - this.centerX;
     //   const moveY = y - this.centerY;
@@ -238,5 +294,10 @@ export class PolygonShape extends Shape {
     //     selectionHandle.y += moveY;
     //   }
     // }
+    // context.invalidate();
+  }
+
+  setClipPath(clipPath: string, context: DrawingContext) {
+    super.setClipPath(clipPath, context);
   }
 }
