@@ -29,7 +29,7 @@ export class PolygonShape extends Shape {
     }
   }
   mouseup(e: MouseEvent, x: number, y: number, context: DrawingContext): void {
-    if (e.ctrlKey === false 
+    if (e.ctrlKey === false &&
       this.isCreating === true &&
       this.isResizeDrag === false &&
       this.isRotate === false &&

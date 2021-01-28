@@ -5,7 +5,7 @@ import { RectangleShape } from "./Shapes/RectangleShape";
 import { Shape } from "./Shapes/Shape";
 
 enum Shapes {
-  Rectangle = 0,
+  Rectangle = 0, 
   Polygon = 1
 }
 
@@ -21,8 +21,8 @@ export class DrawingContext {
   stylePaddingTop: number;
   styleBorderLeft: number;
   styleBorderTop: number;
-  // currentShapeType = Shapes.Rectangle;
-  currentShapeType = Shapes.Polygon;
+  currentShapeType = Shapes.Rectangle;
+  // currentShapeType = Shapes.Polygon;
 
   INTERVAL = 20; // how often, in milliseconds, we check to see if a redraw is needed
 
@@ -218,10 +218,9 @@ export class DrawingContext {
 
   addTransparancyLayer(c: CanvasRenderingContext2D, isGhostContext: boolean) {
     if (
-      this.shapes.length === 0 ||
-      (this.shapes.length === 1 &&
-        this.activeShape !== null &&
-        this.activeShape.isCreating)
+      this.shapes.length === 0
+        //&&
+        // this.activeShape.isCreating
     ) {
       c.clearRect(0, 0, this.canvas.width, this.canvas.height);
     } else {
