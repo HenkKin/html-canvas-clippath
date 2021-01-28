@@ -13,8 +13,30 @@ export class RectangleShape extends Shape {
   static Left = 7;
   w = 1; // default width and height?
   h = 1;
-  mousedown(x: number, y: number, context: DrawingContext): void { }
-  mouseup(x: number, y: number, context: DrawingContext): void { }
+  mousedown(x: number, y: number, context: DrawingContext): void { 
+    if(this.isCreating === true){
+      this.addSelectionHandle(x, y);
+      context.invalidate();
+    }
+  }
+
+  mouseup(x: number, y: number, context: DrawingContext): void { 
+    
+    if (this.isCreating == true) {
+      this.isCreating = false;
+      const minimumDistance = 10;
+      if (
+        x > this.centerX - minimumDistance &&
+        x < this.centerX + minimumDistance &&
+        y > this.centerY - minimumDistance &&
+        y < this.centerY + minimumDistance
+      ) {
+        context.shapes = context.shapes.filter(s => s !== this);
+        context.activeShape = null;
+        context.invalidate();
+      } 
+    }
+  }
   mousemove(x: number, y: number, context: DrawingContext): void { }
 
   get rotationHandleX(): number {
@@ -59,7 +81,7 @@ export class RectangleShape extends Shape {
   }
 
   public onSelectionHandleAdded(): void {
-}
+  }
 
 
   setClipPath(clipPath: string, context: DrawingContext) {

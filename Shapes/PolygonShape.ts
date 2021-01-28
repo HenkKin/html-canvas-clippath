@@ -12,7 +12,7 @@ export class PolygonShape extends Shape {
   }
 
   constructor() {
-    super();
+    super(); 
   }
   public onSelectionHandleAdded(): void {
     const newCenter = this.calculateCenter();

@@ -4,8 +4,11 @@ import { SelectionHandle } from "../SelectionHandle";
 export abstract class Shape {
   static Radian = Math.PI / 180;
 
-  isShapeReady = false;
-
+  public isCreating = false;
+  public isDrag = false;
+  public isResizeDrag = false;
+  public isRotate = false;
+ 
   protected selectionHandles: SelectionHandle[] = [];
   private _rotationSelectionHandle = new SelectionHandle(0, 0);
   get rotationSelectionHandle(): SelectionHandle {

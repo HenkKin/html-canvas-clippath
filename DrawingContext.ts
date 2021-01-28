@@ -26,12 +26,6 @@ export class DrawingContext {
   mousePointOffsetY: number;
 
   canvasValid = true;
-  isDrag = false;
-  isRotate = false;
-  isResizeDrag = false;
-  isCreatingShape = false;
-  isCreatingShapeX?: number = null;
-  isCreatingShapeY?: number = null;
   selectedSelectionHandle: SelectionHandle = null;
   // expectResize = -1; // New, will save the # of the selection handle if the mouse is over one.
   background: HTMLImageElement;
@@ -161,12 +155,20 @@ export class DrawingContext {
     // add custom initialization here:
 
     const shape = new PolygonShape();
-    shape.setClipPath('polygon(63.06335% 9.40018%, 82.55963% 47.83426%, 18.27663% 42.35742%)', this);
+    shape.setClipPath(
+      "polygon(63.06335% 9.40018%, 82.55963% 47.83426%, 18.27663% 42.35742%)",
+      this
+    );
     this.shapes.push(shape);
     this.activeShape = shape;
-    // const shape = new RectangleShape(0,0);
-    // // rotationDegree moet zijn -50.3
-    // shape.setClipPath('polygon(9.494% 75.976%, 19.715% 67.304%, 29.936% 58.632%, 46.645% 68.403%, 63.353% 78.173%, 53.132% 86.845%, 42.911% 95.517%, 26.202% 85.746%)', this);
+    const shapeRect = new RectangleShape(0, 0);
+    // rotationDegree moet zijn -50.3
+    shapeRect.setClipPath(
+      "polygon(9.494% 75.976%, 19.715% 67.304%, 29.936% 58.632%, 46.645% 68.403%, 63.353% 78.173%, 53.132% 86.845%, 42.911% 95.517%, 26.202% 85.746%)",
+      this
+    );
+    this.shapes.push(shapeRect);
+
     // // rotationDegree moet zijn -42.102
     // shape.setClipPath('polygon(40.512% 58.294%, 51.807% 66.278%, 63.101% 74.262%, 47.718% 85.059%, 32.335% 95.855%, 21.04% 87.871%, 9.746% 79.887%, 25.129% 69.091%)', this);
 
@@ -202,6 +204,12 @@ export class DrawingContext {
       e.stopPropagation();
       return;
     }
+
+    if (this.activeShape !== null && this.activeShape.isCreating === true) {
+      this.activeShape.addSelectionHandle(this.mousePoint.x, this.mousePoint.y);
+      this.invalidate();
+      return;
+    }
     // we are over a selection box
     if (this.activeShape !== null && this.selectedSelectionHandle !== null) {
       // console.log('selectedSelect',this.selectedSelectionHandle, this.selectedSelectionHandle === this.activeShape.rotationSelectionHandle);
@@ -209,9 +217,9 @@ export class DrawingContext {
         this.selectedSelectionHandle ===
         this.activeShape.rotationSelectionHandle
       ) {
-        this.isRotate = true;
+        this.activeShape.isRotate = true;
       } else {
-        this.isResizeDrag = true;
+        this.activeShape.isResizeDrag = true;
       }
       return;
     }
@@ -261,10 +269,10 @@ export class DrawingContext {
           //   this.mousePoint.y - this.mousePointOffsetY,
           //   this
           // );
-          this.isDrag = true;
+          this.activeShape.isDrag = true;
           this.canvas.style.cursor = "move";
         }
-        // this.invalidate();
+        this.invalidate();
         this.clear(this.ghostRenderer, true);
         return;
       }
@@ -278,13 +286,23 @@ export class DrawingContext {
       const shape = new RectangleShape(this.mousePoint.x, this.mousePoint.y);
       this.shapes.push(shape);
       this.activeShape = shape;
-      this.isCreatingShape = true;
-      this.isCreatingShapeX = this.mousePoint.x;
-      this.isCreatingShapeY = this.mousePoint.y;
+      shape.isCreating = true;
+      shape.isResizeDrag = true;
+      // this.isCreatingShapeX = this.mousePoint.x;
+      // this.isCreatingShapeY = this.mousePoint.y;
       this.selectedSelectionHandle = shape.getSelectionHandle(
         RectangleShape.BottomRight
       ); // right-bottom
-      this.isResizeDrag = true;
+
+      // const shape = new PolygonShape();
+      // shape.addSelectionHandle(this.mousePoint.x, this.mousePoint.y);
+      // this.shapes.push(shape);
+      // this.activeShape = shape;
+      // this.activeShape.isCreating = true;
+      // this.isCreatingShapeX = this.mousePoint.x;
+      // this.isCreatingShapeY = this.mousePoint.y;
+      // this.selectedSelectionHandle = shape.getSelectionHandle(0);
+      // this.activeShape.isResizeDrag = true;
     }
     // clear the ghost canvas for next time
     this.clear(this.ghostRenderer, true);
@@ -319,7 +337,7 @@ export class DrawingContext {
   addTransparancyLayer(c: CanvasRenderingContext2D, isGhostContext: boolean) {
     if (
       this.shapes.length === 0 ||
-      (this.shapes.length === 1 && this.isCreatingShape)
+      (this.shapes.length === 1 && this.activeShape !== null && this.activeShape.isCreating)
     ) {
       c.clearRect(0, 0, this.canvas.width, this.canvas.height);
     } else {
@@ -430,7 +448,7 @@ export class DrawingContext {
       // this.renderer.drawImage(
       //   this.background,
       //   0,
-      //   0,
+      //   0, 
       //   this.canvas.width,
       //   this.canvas.height
       // );
@@ -457,8 +475,8 @@ export class DrawingContext {
   myUp(e) {
     this.getMouse(e);
 
-    if (this.isCreatingShape && this.activeShape !== null) {
-      this.isCreatingShape = false;
+    if (this.activeShape !== null && this.activeShape.isCreating) {
+      this.activeShape.isCreating = false;
       const minimumDistance = 10;
       if (
         this.mousePoint.x > this.activeShape.centerX - minimumDistance &&
@@ -470,12 +488,15 @@ export class DrawingContext {
         this.activeShape = null;
         this.invalidate();
       } else {
-        this.activeShape.isShapeReady = true;
+         this.activeShape.isCreating = false;
       }
     }
-    this.isDrag = false;
-    this.isResizeDrag = false;
-    this.isRotate = false;
+
+    if(this.activeShape !== null){
+      this.activeShape.isDrag = false;
+      this.activeShape.isResizeDrag = false;
+      this.activeShape.isRotate = false;
+    }
     this.selectedSelectionHandle = null;
     this.canvas.style.cursor = "auto";
   }
@@ -498,7 +519,7 @@ export class DrawingContext {
     //   );
     //   this.invalidate();
     // } else
-    if (this.isDrag) {
+    if (this.activeShape !== null && this.activeShape.isDrag) {
       // this.getMouse(e);
       this.canvas.style.cursor = "move";
 
@@ -518,7 +539,7 @@ export class DrawingContext {
       // something is changing position so we better invalidate the canvas!
       this.invalidate();
       return;
-    } else if (this.isResizeDrag) {
+    } else if (this.activeShape !== null && this.activeShape.isResizeDrag) {
       // this.getMouse(e);
 
       this.activeShape.resizeShape(
@@ -529,7 +550,7 @@ export class DrawingContext {
       );
 
       this.invalidate();
-    } else if (this.isRotate) {
+    } else if (this.activeShape !== null && this.activeShape.isRotate) {
       // this.getMouse(e);
       this.canvas.style.cursor = "grabbing";
       const angleFromRotationhandleToCenter = Math.atan2(
@@ -549,14 +570,14 @@ export class DrawingContext {
 
       // console.log(rotationDegree);
       // console.log(rotationDegree, angleFromRotationhandleToCenter*180/Math.PI, angleFromMouseToCenter*180/Math.PI);
-      this.activeShape.rotationDegree = rotationDegree; 
+      this.activeShape.rotationDegree = rotationDegree;
       // console.log("Angle", this.activeShape.rotationDegree);
 
       this.invalidate();
     }
 
     // if there's a selection see if we grabbed one of the selection handles
-    if (this.activeShape !== null && !this.isResizeDrag && !this.isRotate) {
+    if (this.activeShape !== null && !this.activeShape.isResizeDrag && !this.activeShape.isRotate) {
       // TODO: retutn SelectionHandle instance
       this.selectedSelectionHandle = this.activeShape.getSelectionHandleByXY(
         this.mousePoint.x,
@@ -593,14 +614,14 @@ export class DrawingContext {
       }
       if (this.selectedSelectionHandle === null) {
         // not over a selection box, return to normal
-        this.isResizeDrag = false;
-        this.isRotate = false;
+        this.activeShape.isResizeDrag = false;
+        this.activeShape.isRotate = false;
         this.selectedSelectionHandle = null;
-        this.canvas.style.cursor = this.isDrag ? "move" : "auto";
+        this.canvas.style.cursor = this.activeShape !== null && this.activeShape.isDrag ? "move" : "auto";
       }
     } else {
-      if (!this.isResizeDrag) {
-        this.canvas.style.cursor = this.isDrag ? "move" : "auto";
+      if (this.activeShape !== null && !this.activeShape.isResizeDrag) {
+        this.canvas.style.cursor = this.activeShape !== null && this.activeShape.isDrag ? "move" : "auto";
       }
     }
   }
