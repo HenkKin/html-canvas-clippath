@@ -1,5 +1,6 @@
 import { DrawingConfig } from "./DrawingConfig";
 import { Point } from "./Point";
+import { SelectionHandle } from "./SelectionHandle";
 import { PolygonShape } from "./Shapes/PolygonShape";
 import { RectangleShape } from "./Shapes/RectangleShape";
 import { Shape } from "./Shapes/Shape";
@@ -201,7 +202,7 @@ export class DrawingContext {
     // // add a smaller purple rectangle
     // this.addRect(45, 60, 25, 25, 'rgba(150,150,250,0.7)');
 
-    // this.addPolygonShape("rgba(150,150,250,0.7)"); 
+    // this.addPolygonShape("rgba(150,150,250,0.7)");
     this.invalidate();
   }
 
@@ -233,7 +234,7 @@ export class DrawingContext {
   addTransparancyLayer(c: CanvasRenderingContext2D, isGhostContext: boolean) {
     if (
       this.shapes.length === 0
-      //&&
+      // &&
       // this.activeShape.isCreating
     ) {
       c.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -400,7 +401,7 @@ export class DrawingContext {
   }
 
   createPolygonIcon(x: number, y: number, margin: number): Path2D {
-    //15,15
+    // 15,15
     const path = new Path2D();
     path.moveTo(x + margin, y + margin + 5);
     // path.lineTo(20, 15);
@@ -614,5 +615,46 @@ export class DrawingContext {
         this
       );
     }
+  }
+
+  public addClipPath(clipPath: string) {
+    // console.log('setClipPath', context.canvas.width, context.canvas.height, clipPath);
+    const imageWidth = this.canvas.width;
+    const imageHeight = this.canvas.height;
+    const rx_validate = /^[ ]*[p|P]{1}olygon[ ]*\((?<points>(?<point>[-.0-9% ]+,?)*)*[ ]*\)$/;
+    const rx_extract = /([^ Ppolygon(),]+)\,? ([^,)]+)*/g;
+    let m: RegExpExecArray;
+    if (rx_validate.test(clipPath)) {
+      const selectionHandles = [];
+      // console.log('setClipPath', clipPath);
+
+      let i = 0;
+      while ((m = rx_extract.exec(clipPath.substr(1)))) {
+        let x = parseFloat(m[1].replace(" ", "").replace("%", ""));
+        let y = parseFloat(m[2].replace(" ", "").replace("%", ""));
+        x = this.round((x * imageWidth) / 100, 5);
+        y = this.round((y * imageHeight) / 100, 5);
+        selectionHandles.push(new SelectionHandle(x, y));
+        // console.log('handle', i, x, y);
+        i++;
+      }
+
+      if (selectionHandles.length === 8) {
+        const shape = new RectangleShape(0, 0);
+        shape.setClipPath(clipPath, this);
+        this.shapes.push(shape);
+        this.activeShape = shape;
+      } else {
+        const shape = new PolygonShape();
+        shape.setClipPath(clipPath, this);
+        this.shapes.push(shape);
+        this.activeShape = shape;
+      }
+    }
+  }
+
+  protected round(val: number, decimals: number): number {
+    // return val;
+    return +val.toFixed(decimals);
   }
 }

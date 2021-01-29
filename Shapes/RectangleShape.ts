@@ -13,13 +13,13 @@ export class RectangleShape extends Shape {
   static Left = 7;
   w = 1; // default width and height?
   h = 1;
-  mousedown(e: MouseEvent, x: number, y: number, context: DrawingContext): void { 
- 
+  mousedown(e: MouseEvent, x: number, y: number, context: DrawingContext): void {
+
   }
 
-  mouseup(e: MouseEvent, x: number, y: number, context: DrawingContext): void { 
+  mouseup(e: MouseEvent, x: number, y: number, context: DrawingContext): void {
 
-    if (this.isCreating == true) {
+    if (this.isCreating === true) {
       this.isCreating = false;
       const minimumDistance = 10;
       if (
@@ -31,7 +31,7 @@ export class RectangleShape extends Shape {
         context.shapes = context.shapes.filter(s => s !== this);
         context.activeShape = null;
         context.invalidate();
-      } 
+      }
     }
   }
   mousemove(e: MouseEvent, x: number, y: number, context: DrawingContext): void { }
@@ -101,8 +101,8 @@ export class RectangleShape extends Shape {
     // const unrotatedTopLeft = this.rotate(this.getSelectionHandleX(RectangleShape.TopLeft), this.getSelectionHandleY(RectangleShape.TopLeft), this.centerX, this.centerY, -this.rotationDegree * Shape.Radian);
     // const unrotatedBottomRight = this.rotate(this.getSelectionHandleX(RectangleShape.BottomRight), this.getSelectionHandleY(RectangleShape.BottomRight), this.centerX, this.centerY, -this.rotationDegree * Shape.Radian);
 
-    this.w = this.round(this.calculateDistance(this.getSelectionHandleX(RectangleShape.Left), this.getSelectionHandleY(RectangleShape.Left), this.getSelectionHandleX(RectangleShape.Right), this.getSelectionHandleY(RectangleShape.Right)),3);
-    this.h = this.round(this.calculateDistance(this.getSelectionHandleX(RectangleShape.Top), this.getSelectionHandleY(RectangleShape.Top), this.getSelectionHandleX(RectangleShape.Bottom), this.getSelectionHandleY(RectangleShape.Bottom)),3);
+    this.w = this.round(this.calculateDistance(this.getSelectionHandleX(RectangleShape.Left), this.getSelectionHandleY(RectangleShape.Left), this.getSelectionHandleX(RectangleShape.Right), this.getSelectionHandleY(RectangleShape.Right)), 3);
+    this.h = this.round(this.calculateDistance(this.getSelectionHandleX(RectangleShape.Top), this.getSelectionHandleY(RectangleShape.Top), this.getSelectionHandleX(RectangleShape.Bottom), this.getSelectionHandleY(RectangleShape.Bottom)), 3);
 
 
     // const angleFromRotationhandleToCenter = Math.atan2(
@@ -138,26 +138,26 @@ export class RectangleShape extends Shape {
 
     // this.adjustSelectionHandles();
 
-      const angleFromRotationhandleToCenter = Math.atan2(
-        this.rotationHandleY -
-        this.centerY,
-        this.rotationHandleX -
-        this.centerX
-      );
-      const angleFromMouseToCenter = Math.atan2(
-        this.getSelectionHandleY(RectangleShape.Bottom) - this.centerY,
-        this.getSelectionHandleX(RectangleShape.Bottom) - this.centerX
-      );
-      
+    const angleFromRotationhandleToCenter = Math.atan2(
+      this.rotationHandleY -
+      this.centerY,
+      this.rotationHandleX -
+      this.centerX
+    );
+    const angleFromMouseToCenter = Math.atan2(
+      this.getSelectionHandleY(RectangleShape.Bottom) - this.centerY,
+      this.getSelectionHandleX(RectangleShape.Bottom) - this.centerX
+    );
 
-      const rotationDegree = this.round(
-        ((angleFromMouseToCenter - angleFromRotationhandleToCenter) * 180) /
-        Math.PI, 3);
 
-      // console.log(rotationDegree);
-      // console.log(rotationDegree, angleFromRotationhandleToCenter*180/Math.PI, angleFromMouseToCenter*180/Math.PI);
-      this.rotationDegree = rotationDegree;
-      this.adjustSelectionHandles();
+    const rotationDegree = this.round(
+      ((angleFromMouseToCenter - angleFromRotationhandleToCenter) * 180) /
+      Math.PI, 3);
+
+    // console.log(rotationDegree);
+    // console.log(rotationDegree, angleFromRotationhandleToCenter*180/Math.PI, angleFromMouseToCenter*180/Math.PI);
+    this.rotationDegree = rotationDegree;
+    this.adjustSelectionHandles();
   }
 
   protected draw(

@@ -20,7 +20,12 @@ export class PolygonShape extends Shape {
     this.centerY = newCenter[1];
   }
 
-  mousedown(e: MouseEvent, x: number, y: number, context: DrawingContext): void {
+  mousedown(
+    e: MouseEvent,
+    x: number,
+    y: number,
+    context: DrawingContext
+  ): void {
     if (
       this.getSelectionHandleByXY(x, y, context) === this.selectionHandles[0]
     ) {
@@ -29,7 +34,8 @@ export class PolygonShape extends Shape {
     }
   }
   mouseup(e: MouseEvent, x: number, y: number, context: DrawingContext): void {
-    if (e.ctrlKey === false &&
+    if (
+      e.ctrlKey === false &&
       this.isCreating === true &&
       this.isResizeDrag === false &&
       this.isRotate === false &&
@@ -41,7 +47,12 @@ export class PolygonShape extends Shape {
       context.invalidate();
     }
   }
-  mousemove(e: MouseEvent, x: number, y: number, context: DrawingContext): void {
+  mousemove(
+    e: MouseEvent,
+    x: number,
+    y: number,
+    context: DrawingContext
+  ): void {
     if (
       this.isCreating &&
       this.getSelectionHandleByXY(x, y, context) === this.selectionHandles[0]
@@ -169,7 +180,7 @@ export class PolygonShape extends Shape {
     // const renderer = context.renderer;
     // this.drawPoint(renderer, x, y, this.mySelWidth / 2, "blue");
 
-    let rotatedPoints: { x: number; y: number }[] = this.selectionHandles.map(
+    const rotatedPoints: { x: number; y: number }[] = this.selectionHandles.map(
       handle => {
         if (handle === selectionHandle) {
           return { x: x, y: y };
