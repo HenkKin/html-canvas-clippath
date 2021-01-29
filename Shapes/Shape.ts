@@ -1,5 +1,6 @@
 import { DrawingContext } from "../DrawingContext";
 import { SelectionHandle } from "../SelectionHandle";
+import { PolygonShape } from "../Shapes/PolygonShape";
 
 export abstract class Shape {
   static Radian = Math.PI / 180;
@@ -13,7 +14,7 @@ export abstract class Shape {
   protected mousePointToCenterOffsetX: number;
   protected mousePointToCenterOffsetY: number;
 
-  protected selectionHandles: SelectionHandle[] = [];
+  public selectionHandles: SelectionHandle[] = [];
   private _rotationSelectionHandle = new SelectionHandle(0, 0);
   get rotationSelectionHandle(): SelectionHandle {
     this._rotationSelectionHandle.x = this.rotationHandleX;
@@ -155,7 +156,7 @@ export abstract class Shape {
           cur.y,
           this.mySelBoxSize / 2,
           // this.mySelBoxColor
-          i === 0 ? "orange" : this.mySelBoxColor
+          this.isCreating && this instanceof PolygonShape && i === 0 ? "orange" : this.mySelBoxColor
         );
       }
 

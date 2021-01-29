@@ -5,7 +5,7 @@ import { RectangleShape } from "./Shapes/RectangleShape";
 import { Shape } from "./Shapes/Shape";
 
 enum Shapes {
-  Rectangle = 0, 
+  Rectangle = 0,
   Polygon = 1
 }
 
@@ -22,6 +22,13 @@ export class DrawingContext {
   styleBorderLeft: number;
   styleBorderTop: number;
   currentShapeType = Shapes.Rectangle;
+  buttonRectangle = this.createButton(
+    40,
+    10,
+    this.createRectangleIcon(40, 10, 5)
+  );
+  buttonPolygon = this.createButton(10, 10, this.createPolygonIcon(10, 10, 5));
+
   // currentShapeType = Shapes.Polygon;
 
   INTERVAL = 20; // how often, in milliseconds, we check to see if a redraw is needed
@@ -156,20 +163,26 @@ export class DrawingContext {
     };
     // add custom initialization here:
 
-    const shape = new PolygonShape();
-    shape.setClipPath(
-      "polygon(63.06335% 9.40018%, 82.55963% 47.83426%, 18.27663% 42.35742%)",
-      this
-    );
-    this.shapes.push(shape);
-    this.activeShape = shape;
-    const shapeRect = new RectangleShape(0, 0);
-    // rotationDegree moet zijn -50.3
-    shapeRect.setClipPath(
-      "polygon(9.494% 75.976%, 19.715% 67.304%, 29.936% 58.632%, 46.645% 68.403%, 63.353% 78.173%, 53.132% 86.845%, 42.911% 95.517%, 26.202% 85.746%)",
-      this
-    );
-    this.shapes.push(shapeRect);
+    //     const shape = new PolygonShape();
+    //     shape.setClipPath(
+    //       "polygon(45.11584% 28.75668%, 45.80543% 9.27789%, 59.11703% 25.84504%, 81.27192% 15.74086%, 74.56085% 37.52368%, 92.7198% 49.85414%, 68.38647% 54.08208%, 53.08757% 67.83674%, 42.381% 49.83151%, 13.57344% 48.22158%, 35.95472% 35.43617%, 15.10481% 26.69274%)",
+    //       this
+    //     );
+    //  const shape2 = new PolygonShape();
+    //     shape2.setClipPath(
+    //     "polygon(40.05395% 32.26909%, 27.28203% 14.98424%, 50.31004% 24.95276%, 62.76423% 8.56418%, 71.8476% 29.91625%, 96.20934% 34.52571%, 77.81329% 46.51254%, 73.8669% 63.7618%, 52.13161% 51.64743%, 25.81048% 60.04788%, 36.62173% 41.23531%, 12.36768% 40.68194%)",
+    //       this
+    //     );
+    //     this.shapes.push(shape);
+    //     this.shapes.push(shape2);
+    //     this.activeShape = shape;
+    //     const shapeRect = new RectangleShape(0, 0);
+    //     // rotationDegree moet zijn -50.3
+    //     shapeRect.setClipPath(
+    //       "polygon(9.494% 75.976%, 19.715% 67.304%, 29.936% 58.632%, 46.645% 68.403%, 63.353% 78.173%, 53.132% 86.845%, 42.911% 95.517%, 26.202% 85.746%)",
+    //       this
+    //     );
+    //     this.shapes.push(shapeRect);
 
     // // rotationDegree moet zijn -42.102
     // shape.setClipPath('polygon(40.512% 58.294%, 51.807% 66.278%, 63.101% 74.262%, 47.718% 85.059%, 32.335% 95.855%, 21.04% 87.871%, 9.746% 79.887%, 25.129% 69.091%)', this);
@@ -188,7 +201,8 @@ export class DrawingContext {
     // // add a smaller purple rectangle
     // this.addRect(45, 60, 25, 25, 'rgba(150,150,250,0.7)');
 
-    // this.addPolygonShape("rgba(150,150,250,0.7)");
+    // this.addPolygonShape("rgba(150,150,250,0.7)"); 
+    this.invalidate();
   }
 
   // wipes the canvas context
@@ -219,8 +233,8 @@ export class DrawingContext {
   addTransparancyLayer(c: CanvasRenderingContext2D, isGhostContext: boolean) {
     if (
       this.shapes.length === 0
-        //&&
-        // this.activeShape.isCreating
+      //&&
+      // this.activeShape.isCreating
     ) {
       c.clearRect(0, 0, this.canvas.width, this.canvas.height);
     } else {
@@ -327,6 +341,7 @@ export class DrawingContext {
   mainDraw() {
     if (this.canvasValid === false) {
       this.clear(this.renderer, false);
+
       // Add stuff you want drawn in the background all the time here
       // this.renderer.drawImage(
       //   this.background,
@@ -351,8 +366,64 @@ export class DrawingContext {
       }
       // Add stuff you want drawn on top all the time here
 
+      // this.renderer.strokeStyle = "black";
+      this.renderer.save();
+      this.renderer.fillStyle = "silver";
+      // const currentGlobalAlpha = c.globalAlpha;
+      this.renderer.globalAlpha = 0.5;
+      this.renderer.fill(this.buttonPolygon);
+      this.renderer.fill(this.buttonRectangle);
+      this.renderer.globalAlpha = 1;
+
+      this.renderer.strokeStyle =
+        this.currentShapeType === Shapes.Polygon ? "black" : "silver";
+      this.renderer.stroke(this.buttonPolygon);
+      this.renderer.strokeStyle =
+        this.currentShapeType === Shapes.Rectangle ? "black" : "silver";
+      this.renderer.stroke(this.buttonRectangle);
+
+      this.renderer.restore();
+
       this.canvasValid = true;
     }
+  }
+
+  createButton(x: number, y: number, iconPath: Path2D): Path2D {
+    const path = new Path2D();
+    path.moveTo(x, y);
+    path.lineTo(x + 25, y);
+    path.lineTo(x + 25, y + 25);
+    path.lineTo(x, y + 25);
+    path.closePath();
+    path.addPath(iconPath);
+    return path;
+  }
+
+  createPolygonIcon(x: number, y: number, margin: number): Path2D {
+    //15,15
+    const path = new Path2D();
+    path.moveTo(x + margin, y + margin + 5);
+    // path.lineTo(20, 15);
+    path.lineTo(x + margin + 10, y + margin);
+    path.lineTo(x + margin + 15, y + margin + 5);
+    path.lineTo(x + margin + 10, y + margin + 5);
+    // path.lineTo(30, 25);
+    path.lineTo(x + margin + 15, y + margin + 15);
+    path.lineTo(x + margin + 5, y + margin + 15);
+    // path.lineTo(20, 30);
+    path.lineTo(x + margin, y + margin + 10);
+    path.closePath();
+    return path;
+  }
+
+  createRectangleIcon(x: number, y: number, margin: number): Path2D {
+    const path = new Path2D();
+    path.moveTo(x + margin, y + margin);
+    path.lineTo(x + margin + 15, y + margin);
+    path.lineTo(x + margin + 15, y + margin + 15);
+    path.lineTo(x + margin, y + margin + 15);
+    path.closePath();
+    return path;
   }
 
   // Happens when the mouse is clicked in the canvas
@@ -369,6 +440,48 @@ export class DrawingContext {
     ) {
       e.preventDefault();
       e.stopPropagation();
+      return;
+    }
+
+    if (
+      this.renderer.isPointInPath(
+        this.buttonRectangle,
+        this.mousePoint.x,
+        this.mousePoint.y
+      )
+    ) {
+      if (this.currentShapeType !== Shapes.Rectangle) {
+        if (this.activeShape !== null) {
+          this.activeShape.isCreating = false;
+          if (this.activeShape.selectionHandles.length <= 1) {
+            this.shapes = this.shapes.filter(s => s !== this.activeShape);
+            this.activeShape = null;
+          }
+        }
+        // console.log("click rect");
+        this.currentShapeType = Shapes.Rectangle;
+        this.invalidate();
+      }
+      return;
+    } else if (
+      this.renderer.isPointInPath(
+        this.buttonPolygon,
+        this.mousePoint.x,
+        this.mousePoint.y
+      )
+    ) {
+      if (this.currentShapeType !== Shapes.Polygon) {
+        // console.log("click poly");
+        if (this.activeShape !== null) {
+          this.activeShape.isCreating = false;
+          if (this.activeShape.selectionHandles.length <= 1) {
+            this.shapes = this.shapes.filter(s => s !== this.activeShape);
+            this.activeShape = null;
+          }
+        }
+        this.currentShapeType = Shapes.Polygon;
+        this.invalidate();
+      }
       return;
     }
 
@@ -455,7 +568,12 @@ export class DrawingContext {
     this.getMouse(e);
 
     if (this.activeShape !== null) {
-      this.activeShape.mouseupShape(e, this.mousePoint.x, this.mousePoint.y, this);
+      this.activeShape.mouseupShape(
+        e,
+        this.mousePoint.x,
+        this.mousePoint.y,
+        this
+      );
     }
 
     // this.canvas.style.cursor = "auto";
@@ -467,8 +585,30 @@ export class DrawingContext {
 
     this.getMouse(e);
 
+    if (
+      this.renderer.isPointInPath(
+        this.buttonRectangle,
+        this.mousePoint.x,
+        this.mousePoint.y
+      )
+    ) {
+      this.canvas.style.cursor = "pointer";
+      return;
+    } else if (
+      this.renderer.isPointInPath(
+        this.buttonPolygon,
+        this.mousePoint.x,
+        this.mousePoint.y
+      )
+    ) {
+      this.canvas.style.cursor = "pointer";
+      return;
+    } else {
+      // this.canvas.style.cursor = "auto";
+    }
     if (this.activeShape !== null) {
-      this.activeShape.mousemoveShape(e,
+      this.activeShape.mousemoveShape(
+        e,
         this.mousePoint.x,
         this.mousePoint.y,
         this

@@ -166,8 +166,8 @@ export class PolygonShape extends Shape {
     context: DrawingContext
   ) {
     // time ro resize!
-    const renderer = context.renderer;
-    this.drawPoint(renderer, x, y, this.mySelWidth / 2, "blue");
+    // const renderer = context.renderer;
+    // this.drawPoint(renderer, x, y, this.mySelWidth / 2, "blue");
 
     let rotatedPoints: { x: number; y: number }[] = this.selectionHandles.map(
       handle => {
@@ -213,13 +213,13 @@ export class PolygonShape extends Shape {
     this.centerX = newCenter[0];
     this.centerY = newCenter[1];
 
-    this.drawPoint(
-      renderer,
-      selectionHandle.x,
-      selectionHandle.y,
-      this.mySelWidth / 2,
-      "green"
-    );
+    // this.drawPoint(
+    //   renderer,
+    //   selectionHandle.x,
+    //   selectionHandle.y,
+    //   this.mySelWidth / 2,
+    //   "green"
+    // );
     context.invalidate();
     // }
   }

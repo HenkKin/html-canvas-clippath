@@ -328,8 +328,8 @@ export class RectangleShape extends Shape {
   }
 
   protected resize(x: number, y: number, selectionHandle: SelectionHandle, context: DrawingContext) {
-    const renderer = context.renderer;
-    this.drawPoint(renderer, x, y, this.mySelBoxSize / 2, 'blue');
+    // const renderer = context.renderer;
+    // this.drawPoint(renderer, x, y, this.mySelBoxSize / 2, 'blue');
 
     // 0  1  2
     // 7     3
