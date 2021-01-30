@@ -152,7 +152,9 @@ export class DrawingContext {
     // Get the position of a touch relative to the canvas
 
     // Prevent scrolling when touching the canvas
-    document.addEventListener("touchstart", function(e) {
+    document.addEventListener(
+      "touchstart",
+      function(e) {
         if (e.target == self.canvas) {
           e.preventDefault();
         }
@@ -161,7 +163,9 @@ export class DrawingContext {
       false
     );
 
-    document.addEventListener("touchend", function(e) {
+    document.addEventListener(
+      "touchend",
+      function(e) {
         if (e.target == self.canvas) {
           e.preventDefault();
         }
@@ -170,7 +174,9 @@ export class DrawingContext {
       false
     );
 
-    document.addEventListener("touchcancel", function(e) {
+    document.addEventListener(
+      "touchcancel",
+      function(e) {
         if (e.target == self.canvas) {
           e.preventDefault();
         }
@@ -178,7 +184,9 @@ export class DrawingContext {
       },
       false
     );
-    document.addEventListener("touchmove", function(e) {
+    document.addEventListener(
+      "touchmove",
+      function(e) {
         if (e.target == self.canvas) {
           e.preventDefault();
         }
@@ -187,19 +195,35 @@ export class DrawingContext {
       false
     );
 
-    document.addEventListener("mousedown", function(e) {
-      self.myDown(e);
-    }, false);
-    document.addEventListener("mouseup", function(e) {
-      self.myUp(e);
-    }, false);
-    document.addEventListener("mousemove", function(e) {
-      self.myMove(e);
-    }, false);
-    
-    document.addEventListener("dblclick", function(e) {
-      self.myDblClick(e);
-    }, false);
+    document.addEventListener(
+      "mousedown",
+      function(e) {
+        self.myDown(e);
+      },
+      false
+    );
+    document.addEventListener(
+      "mouseup",
+      function(e) {
+        self.myUp(e);
+      },
+      false
+    );
+    document.addEventListener(
+      "mousemove",
+      function(e) {
+        self.myMove(e);
+      },
+      false
+    );
+
+    document.addEventListener(
+      "dblclick",
+      function(e) {
+        self.myDblClick(e);
+      },
+      false
+    );
 
     window.onresize = function() {
       const allClippathsFromShapes: {
@@ -388,17 +412,17 @@ export class DrawingContext {
     offsetX += this.styleBorderLeft;
     offsetY += this.styleBorderTop;
 
-    if(e instanceof TouchEvent){
+    if (e.constructor.name === "TouchEvent") {
       this.mousePoint = new Point(
-        e.touches[0].clientX - offsetX,
-        e.touches[0].clientY - offsetY,
+        (<TouchEvent>e).touches[0].clientX - offsetX,
+        (<TouchEvent>e).touches[0].clientY - offsetY,
         offsetX,
         offsetY
       );
-    } else{
+    } else {
       this.mousePoint = new Point(
-        e.pageX - offsetX,
-        e.pageY - offsetY,
+        (<MouseEvent>e).pageX - offsetX,
+        (<MouseEvent>e).pageY - offsetY,
         offsetX,
         offsetY
       );
@@ -522,7 +546,7 @@ export class DrawingContext {
   }
 
   // Happens when the mouse is clicked in the canvas
-  myDown(e: MouseEvent|TouchEvent) {
+  myDown(e: MouseEvent | TouchEvent) {
     this.getMouse(e);
     // console.log(this.mousePoint);
     // const bounds = this.canvas.getBoundingClientRect();
@@ -659,7 +683,7 @@ export class DrawingContext {
     this.invalidate();
   }
 
-  myUp(e: MouseEvent|TouchEvent) {
+  myUp(e: MouseEvent | TouchEvent) {
     this.getMouse(e);
 
     if (this.activeShape !== null) {
@@ -675,7 +699,7 @@ export class DrawingContext {
   }
 
   // Happens when the mouse is moving inside the canvas
-  myMove(e: MouseEvent|TouchEvent) {
+  myMove(e: MouseEvent | TouchEvent) {
     // console.log(this.isDrag, this.isResizeDrag, this.activeShape);
 
     this.getMouse(e);
