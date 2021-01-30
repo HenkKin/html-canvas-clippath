@@ -684,7 +684,7 @@ export class DrawingContext {
   }
 
   myUp(e: MouseEvent | TouchEvent) {
-    this.getMouse(e);
+    // this.getMouse(e);
 
     if (this.activeShape !== null) {
       this.activeShape.mouseupShape(
