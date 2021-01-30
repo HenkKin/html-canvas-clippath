@@ -1,5 +1,5 @@
-import { DrawingContext } from '../DrawingContext';
-import { SelectionHandle } from '../SelectionHandle';
+import { DrawingContext } from "../DrawingContext";
+import { SelectionHandle } from "../SelectionHandle";
 
 export abstract class Shape {
   static Radian = Math.PI / 180;
@@ -22,9 +22,9 @@ export abstract class Shape {
   }
   abstract get rotationHandleX(): number;
   abstract get rotationHandleY(): number;
-  mySelColor = '#CC0000';
+  mySelColor = "#CC0000";
   mySelWidth = 1;
-  mySelBoxColor = 'darkred';
+  mySelBoxColor = "darkred";
   mySelBoxSize = 18;
   rotationDegree = 0;
   shapePath: Path2D = new Path2D();
@@ -59,7 +59,7 @@ export abstract class Shape {
     renderer.fillStyle = color;
     renderer.fill(shapePath);
     renderer.lineWidth = 1;
-    renderer.strokeStyle = '#003300';
+    renderer.strokeStyle = "#003300";
     renderer.stroke(shapePath);
     renderer.restore();
     return shapePath;
@@ -116,9 +116,9 @@ export abstract class Shape {
     this.rotateCanvas(renderer);
     renderer.save();
     if (isGhostContext === true) {
-      renderer.fillStyle = 'black'; // always want black for the ghost canvas
+      renderer.fillStyle = "black"; // always want black for the ghost canvas
     } else {
-      renderer.globalCompositeOperation = 'destination-out';
+      renderer.globalCompositeOperation = "destination-out";
       // context.fillStyle = this.fill;
     }
     // renderer.save();
@@ -135,7 +135,7 @@ export abstract class Shape {
       this.rotateCanvas(renderer);
 
       renderer.fillStyle = this.mySelBoxColor;
-      this.drawCircel(renderer, this.centerX, this.centerY, 20, 'silver');
+      this.drawCircel(renderer, this.centerX, this.centerY, 20, "silver");
       // this.drawPoint(renderer, this.centerX, this.centerY, 2,"black");
       for (let i = 0; i < this.selectionHandles.length; i++) {
         const cur = this.selectionHandles[i];
@@ -146,7 +146,7 @@ export abstract class Shape {
             this.rotationHandleX,
             this.rotationHandleY,
             this.mySelBoxSize / 2,
-            'blue'
+            "blue"
           );
         }
         cur.shapePath = this.drawPoint(
@@ -155,7 +155,9 @@ export abstract class Shape {
           cur.y,
           this.mySelBoxSize / 2,
           // this.mySelBoxColor
-          this.isCreating && this.constructor.name === 'PolygonShape' && i === 0 ? 'orange' : this.mySelBoxColor
+          this.isCreating && this.constructor.name === "PolygonShape" && i === 0
+            ? "orange"
+            : this.mySelBoxColor
         );
       }
 
@@ -240,7 +242,7 @@ export abstract class Shape {
   }
 
   public mousedownShape(
-    e: MouseEvent,
+    e: MouseEvent | TouchEvent,
     x: number,
     y: number,
     context: DrawingContext
@@ -276,21 +278,21 @@ export abstract class Shape {
     if (this.isPointInShape(x, y, context)) {
       // console.log("isPointInShape true");
       this.isDrag = true;
-      context.canvas.style.cursor = 'move';
+      context.canvas.style.cursor = "move";
       return true;
     }
     return false;
   }
 
   protected abstract mousedown(
-    e: MouseEvent,
+    e: MouseEvent | TouchEvent,
     x: number,
     y: number,
     context: DrawingContext
   ): void;
 
   public mouseupShape(
-    e: MouseEvent,
+    e: MouseEvent | TouchEvent,
     x: number,
     y: number,
     context: DrawingContext
@@ -302,16 +304,21 @@ export abstract class Shape {
     this.selectedSelectionHandle = null;
   }
   protected abstract mouseup(
-    e: MouseEvent,
+    e: MouseEvent | TouchEvent,
     x: number,
     y: number,
     context: DrawingContext
   ): void;
 
-  public mousemoveShape(e: MouseEvent, x: number, y: number, context: DrawingContext): void {
+  public mousemoveShape(
+    e: MouseEvent | TouchEvent,
+    x: number,
+    y: number,
+    context: DrawingContext
+  ): void {
     if (this.isDrag) {
       // this.getMouse(e);
-      context.canvas.style.cursor = 'move';
+      context.canvas.style.cursor = "move";
 
       this.moveShape(
         x - this.mousePointToCenterOffsetX,
@@ -330,7 +337,7 @@ export abstract class Shape {
       return;
     } else if (this.isRotate) {
       // this.getMouse(e);
-      context.canvas.style.cursor = 'grabbing';
+      context.canvas.style.cursor = "grabbing";
       const angleFromRotationhandleToCenter = Math.atan2(
         this.rotationHandleY - this.centerY,
         this.rotationHandleX - this.centerX
@@ -342,7 +349,7 @@ export abstract class Shape {
 
       const rotationDegree = this.round(
         ((angleFromMouseToCenter - angleFromRotationhandleToCenter) * 180) /
-        Math.PI,
+          Math.PI,
         3
       );
 
@@ -362,15 +369,15 @@ export abstract class Shape {
       // const cur = this.rotationSelectionHandle;
       const rotatedX =
         (this.rotationHandleX - this.centerX) *
-        Math.cos(Shape.Radian * this.rotationDegree) -
+          Math.cos(Shape.Radian * this.rotationDegree) -
         (this.rotationHandleY - this.centerY) *
-        Math.sin(Shape.Radian * this.rotationDegree) +
+          Math.sin(Shape.Radian * this.rotationDegree) +
         this.centerX;
       const rotatedY =
         (this.rotationHandleX - this.centerX) *
-        Math.sin(Shape.Radian * this.rotationDegree) +
+          Math.sin(Shape.Radian * this.rotationDegree) +
         (this.rotationHandleY - this.centerY) *
-        Math.cos(Shape.Radian * this.rotationDegree) +
+          Math.cos(Shape.Radian * this.rotationDegree) +
         this.centerY;
 
       if (
@@ -381,7 +388,7 @@ export abstract class Shape {
       ) {
         // we found one!
         this.selectedSelectionHandle = this.rotationSelectionHandle;
-        context.canvas.style.cursor = 'grab';
+        context.canvas.style.cursor = "grab";
         context.invalidate();
         return;
       }
@@ -392,10 +399,10 @@ export abstract class Shape {
       this.isRotate = false;
       this.selectedSelectionHandle = null;
       context.canvas.style.cursor = this.isDrag
-        ? 'move'
+        ? "move"
         : this.isCreating
-          ? 'crosshair'
-          : 'auto';
+        ? "crosshair"
+        : "auto";
     }
 
     this.mousemove(e, x, y, context);
@@ -407,7 +414,7 @@ export abstract class Shape {
     // }
   }
   protected abstract mousemove(
-    e: MouseEvent,
+    e: MouseEvent | TouchEvent,
     x: number,
     y: number,
     context: DrawingContext
@@ -431,8 +438,8 @@ export abstract class Shape {
 
       let i = 0;
       while ((m = rx_extract.exec(clipPath.substr(1)))) {
-        let x = parseFloat(m[1].replace(' ', '').replace('%', ''));
-        let y = parseFloat(m[2].replace(' ', '').replace('%', ''));
+        let x = parseFloat(m[1].replace(" ", "").replace("%", ""));
+        let y = parseFloat(m[2].replace(" ", "").replace("%", ""));
         x = this.round((x * imageWidth) / 100, 5);
         y = this.round((y * imageHeight) / 100, 5);
         this.addSelectionHandle(x, y);
@@ -452,10 +459,10 @@ export abstract class Shape {
   }
 
   public getClipPath(context: DrawingContext) {
-    let clipPath = 'clip-path: polygon()';
+    let clipPath = "clip-path: polygon()";
 
     let i = 0;
-    let paths = '';
+    let paths = "";
 
     const imageWidth = context.canvas.width;
     const imageHeight = context.canvas.height;
@@ -468,29 +475,29 @@ export abstract class Shape {
         this.centerY,
         this.rotationDegree * Shape.Radian
       );
-      const x = this.round((rotatedPoint[0] / imageWidth) * 100, 5) + '%';
-      const y = this.round((rotatedPoint[1] / imageHeight) * 100, 5) + '%';
+      const x = this.round((rotatedPoint[0] / imageWidth) * 100, 5) + "%";
+      const y = this.round((rotatedPoint[1] / imageHeight) * 100, 5) + "%";
 
       if (i === this.selectionHandles.length - 1) {
         // last coordinate to add, omits a comma at the end
-        paths += x + ' ' + y;
+        paths += x + " " + y;
       } else {
         // loops through each coordinate and adds it to a list to add
-        paths += x + ' ' + y + ', ';
+        paths += x + " " + y + ", ";
       }
       i++;
     }
 
-    clipPath = 'polygon(' + paths + ')';
+    clipPath = "polygon(" + paths + ")";
     // console.log('getClipPath', this.rotationDegree, clipPath);
     return clipPath;
   }
 
   public getInverseClipPath(context: DrawingContext) {
-    let clipPath = 'clip-path: polygon()';
+    let clipPath = "clip-path: polygon()";
 
     let i = 0;
-    let paths = '';
+    let paths = "";
 
     const imageWidth = context.canvas.width;
     const imageHeight = context.canvas.height;
@@ -505,11 +512,11 @@ export abstract class Shape {
         this.centerY,
         this.rotationDegree * Shape.Radian
       );
-      const x = this.round((rotatedPoint[0] / imageWidth) * 100, 5) + '%';
-      const y = this.round((rotatedPoint[1] / imageHeight) * 100, 5) + '%';
+      const x = this.round((rotatedPoint[0] / imageWidth) * 100, 5) + "%";
+      const y = this.round((rotatedPoint[1] / imageHeight) * 100, 5) + "%";
 
       if (i === allPoints.length - 1) {
-        paths += x + ' ' + y + ', ';
+        paths += x + " " + y + ", ";
 
         // make inverse
         // add start point as last point to close the figure
@@ -523,10 +530,10 @@ export abstract class Shape {
         );
 
         const startPointX =
-          this.round((rotatedStartPoint[0] / imageWidth) * 100, 5) + '%';
+          this.round((rotatedStartPoint[0] / imageWidth) * 100, 5) + "%";
         const startPointY =
-          this.round((rotatedStartPoint[1] / imageHeight) * 100, 5) + '%';
-        paths += startPointX + ' ' + startPointY + ', ';
+          this.round((rotatedStartPoint[1] / imageHeight) * 100, 5) + "%";
+        paths += startPointX + " " + startPointY + ", ";
 
         // define corners
         const leftTopCorner = new SelectionHandle(0, 0);
@@ -559,27 +566,27 @@ export abstract class Shape {
 
         for (let index = 0; index < cornersInDirectionOrder.length; index++) {
           const corner = cornersInDirectionOrder[index];
-          const cornerX = this.round((corner.x / imageWidth) * 100, 5) + '%';
-          const cornerY = this.round((corner.y / imageHeight) * 100, 3) + '%';
-          paths += cornerX + ' ' + cornerY + ', ';
+          const cornerX = this.round((corner.x / imageWidth) * 100, 5) + "%";
+          const cornerY = this.round((corner.y / imageHeight) * 100, 3) + "%";
+          paths += cornerX + " " + cornerY + ", ";
         }
 
         const firstCornerInDirectionOrderX =
           this.round((cornersInDirectionOrder[0].x / imageWidth) * 100, 3) +
-          '%';
+          "%";
         const firstCornerInDirectionOrderY =
           this.round((cornersInDirectionOrder[0].y / imageHeight) * 100, 3) +
-          '%';
+          "%";
         paths +=
-          firstCornerInDirectionOrderX + ' ' + firstCornerInDirectionOrderY;
+          firstCornerInDirectionOrderX + " " + firstCornerInDirectionOrderY;
       } else {
         // loops through each coordinate and adds it to a list to add
-        paths += x + ' ' + y + ', ';
+        paths += x + " " + y + ", ";
       }
       i++;
     }
 
-    clipPath = 'polygon(' + paths + ')';
+    clipPath = "polygon(" + paths + ")";
 
     return clipPath;
   }

@@ -13,11 +13,11 @@ export class RectangleShape extends Shape {
   static Left = 7;
   w = 1; // default width and height?
   h = 1;
-  mousedown(e: MouseEvent, x: number, y: number, context: DrawingContext): void {
+  mousedown(e: MouseEvent|TouchEvent, x: number, y: number, context: DrawingContext): void {
 
   }
 
-  mouseup(e: MouseEvent, x: number, y: number, context: DrawingContext): void {
+  mouseup(e: MouseEvent|TouchEvent, x: number, y: number, context: DrawingContext): void {
 
     if (this.isCreating === true) {
       this.isCreating = false;
@@ -34,7 +34,7 @@ export class RectangleShape extends Shape {
       }
     }
   }
-  mousemove(e: MouseEvent, x: number, y: number, context: DrawingContext): void { }
+  mousemove(e: MouseEvent|TouchEvent, x: number, y: number, context: DrawingContext): void { }
 
   get rotationHandleX(): number {
     return this.centerX;

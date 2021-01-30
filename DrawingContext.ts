@@ -152,64 +152,55 @@ export class DrawingContext {
     // Get the position of a touch relative to the canvas
 
     // Prevent scrolling when touching the canvas
-    document.addEventListener(
-      "touchstart",
-      function(e) {
+    document.addEventListener("touchstart", function(e) {
         if (e.target == self.canvas) {
           e.preventDefault();
         }
-
-        // const mousePos = self.getTouchPos(e);
-        var touch = e.touches[0];
-        var mouseEvent = new MouseEvent("mousedown", {
-          clientX: touch.clientX,
-          clientY: touch.clientY
-        });
-        document.dispatchEvent(mouseEvent);
+        self.myDown(e);
       },
       false
     );
-    document.addEventListener(
-      "touchend",
-      function(e) {
+
+    document.addEventListener("touchend", function(e) {
         if (e.target == self.canvas) {
           e.preventDefault();
         }
-
-        var mouseEvent = new MouseEvent("mouseup", {});
-        document.dispatchEvent(mouseEvent);
+        self.myUp(e);
       },
       false
     );
-    document.addEventListener(
-      "touchmove",
-      function(e) {
+
+    document.addEventListener("touchcancel", function(e) {
         if (e.target == self.canvas) {
           e.preventDefault();
         }
-
-        var touch = e.touches[0];
-        var mouseEvent = new MouseEvent("mousemove", {
-          clientX: touch.clientX,
-          clientY: touch.clientY
-        });
-        document.dispatchEvent(mouseEvent);
+        self.myUp(e);
+      },
+      false
+    );
+    document.addEventListener("touchmove", function(e) {
+        if (e.target == self.canvas) {
+          e.preventDefault();
+        }
+        self.myMove(e);
       },
       false
     );
 
     document.addEventListener("mousedown", function(e) {
       self.myDown(e);
-    });
+    }, false);
     document.addEventListener("mouseup", function(e) {
       self.myUp(e);
-    });
-    document.addEventListener("dblclick", function(e) {
-      self.myDblClick(e);
-    });
+    }, false);
     document.addEventListener("mousemove", function(e) {
       self.myMove(e);
-    });
+    }, false);
+    
+    document.addEventListener("dblclick", function(e) {
+      self.myDblClick(e);
+    }, false);
+
     window.onresize = function() {
       const allClippathsFromShapes: {
         shape: Shape;
@@ -378,7 +369,7 @@ export class DrawingContext {
 
   // Sets mousePoint.x,my to the mouse position relative to the canvas
   // unfortunately this can be tricky, we have to worry about padding and borders
-  getMouse(e: MouseEvent): void {
+  getMouse(e: MouseEvent | TouchEvent): void {
     let element: any = this.canvas,
       offsetX = 0,
       offsetY = 0;
@@ -397,38 +388,47 @@ export class DrawingContext {
     offsetX += this.styleBorderLeft;
     offsetY += this.styleBorderTop;
 
-    this.mousePoint = new Point(
-      e.pageX - offsetX,
-      e.pageY - offsetY,
-      offsetX,
-      offsetY
-    );
-  }
-
-  getTouchPos(touchEvent: TouchEvent) {
-    // var rect = canvasDom.getBoundingClientRect();
-    let element: any = this.canvas,
-      offsetX = 0,
-      offsetY = 0;
-
-    if (element.offsetParent) {
-      do {
-        offsetX += element.offsetLeft;
-        offsetY += element.offsetTop;
-      } while ((element = element.offsetParent));
+    if(e instanceof TouchEvent){
+      this.mousePoint = new Point(
+        e.touches[0].pageX - offsetX,
+        e.touches[0].pageY - offsetY,
+        offsetX,
+        offsetY
+      );
+    } else{
+      this.mousePoint = new Point(
+        e.pageX - offsetX,
+        e.pageY - offsetY,
+        offsetX,
+        offsetY
+      );
     }
-
-    // Add padding and border style widths to offset
-    offsetX += this.stylePaddingLeft;
-    offsetY += this.stylePaddingTop;
-
-    offsetX += this.styleBorderLeft;
-    offsetY += this.styleBorderTop;
-    return {
-      x: touchEvent.touches[0].clientX - offsetX,
-      y: touchEvent.touches[0].clientY - offsetY
-    };
   }
+
+  // getTouchPos(touchEvent: TouchEvent) {
+  //   // var rect = canvasDom.getBoundingClientRect();
+  //   let element: any = this.canvas,
+  //     offsetX = 0,
+  //     offsetY = 0;
+
+  //   if (element.offsetParent) {
+  //     do {
+  //       offsetX += element.offsetLeft;
+  //       offsetY += element.offsetTop;
+  //     } while ((element = element.offsetParent));
+  //   }
+
+  //   // Add padding and border style widths to offset
+  //   offsetX += this.stylePaddingLeft;
+  //   offsetY += this.stylePaddingTop;
+
+  //   offsetX += this.styleBorderLeft;
+  //   offsetY += this.styleBorderTop;
+  //   return {
+  //     x: touchEvent.touches[0].pageX - offsetX,
+  //     y: touchEvent.touches[0].pageY - offsetY
+  //   };
+  // }
 
   // Main draw loop.
   // While draw is called as often as the INTERVAL variable demands,
@@ -522,7 +522,7 @@ export class DrawingContext {
   }
 
   // Happens when the mouse is clicked in the canvas
-  myDown(e: MouseEvent) {
+  myDown(e: MouseEvent|TouchEvent) {
     this.getMouse(e);
     // console.log(this.mousePoint);
     // const bounds = this.canvas.getBoundingClientRect();
@@ -659,7 +659,7 @@ export class DrawingContext {
     this.invalidate();
   }
 
-  myUp(e: MouseEvent) {
+  myUp(e: MouseEvent|TouchEvent) {
     this.getMouse(e);
 
     if (this.activeShape !== null) {
@@ -675,7 +675,7 @@ export class DrawingContext {
   }
 
   // Happens when the mouse is moving inside the canvas
-  myMove(e: MouseEvent) {
+  myMove(e: MouseEvent|TouchEvent) {
     // console.log(this.isDrag, this.isResizeDrag, this.activeShape);
 
     this.getMouse(e);

@@ -21,7 +21,7 @@ export class PolygonShape extends Shape {
   }
 
   mousedown(
-    e: MouseEvent,
+    e: MouseEvent | TouchEvent,
     x: number,
     y: number,
     context: DrawingContext
@@ -33,7 +33,12 @@ export class PolygonShape extends Shape {
       context.invalidate();
     }
   }
-  mouseup(e: MouseEvent, x: number, y: number, context: DrawingContext): void {
+  mouseup(
+    e: MouseEvent | TouchEvent,
+    x: number,
+    y: number,
+    context: DrawingContext
+  ): void {
     if (
       e.ctrlKey === false &&
       this.isCreating === true &&
@@ -48,7 +53,7 @@ export class PolygonShape extends Shape {
     }
   }
   mousemove(
-    e: MouseEvent,
+    e: MouseEvent | TouchEvent,
     x: number,
     y: number,
     context: DrawingContext
