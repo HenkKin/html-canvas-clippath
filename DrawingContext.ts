@@ -117,9 +117,29 @@ export class DrawingContext {
     }
 
     // make mainDraw() fire every INTERVAL milliseconds
-    setInterval(() => {
-      this.mainDraw();
-    }, this.INTERVAL);
+    // setInterval(() => {
+    //   this.mainDraw();
+    // }, this.INTERVAL);
+
+    // Get a regular interval for drawing to the screen
+    (<any>window).requestAnimFrame = (function(callback) {
+      return (
+        window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        (<any>window).mozRequestAnimationFrame ||
+        (<any>window).oRequestAnimationFrame ||
+        (<any>window).msRequestAnimaitonFrame ||
+        function(callback) {
+          window.setTimeout(callback, 1000 / 60);
+        }
+      );
+    })();
+
+    const self = this;
+    (function drawLoop() {
+      (<any>window).requestAnimFrame(drawLoop);
+      self.mainDraw();
+    })();
 
     // set our events. Up and down are for dragging,
     // double click is for making new boxes
@@ -128,7 +148,56 @@ export class DrawingContext {
     // document.ondblclick = this.myDblClick;
     // document.onmousemove = this.myMove;
 
-    const self = this;
+    // Set up touch events for mobile, etc
+    // Get the position of a touch relative to the canvas
+
+    // Prevent scrolling when touching the canvas
+    document.addEventListener(
+      "touchstart",
+      function(e) {
+        if (e.target == self.canvas) {
+          e.preventDefault();
+        }
+
+        // const mousePos = self.getTouchPos(e);
+        var touch = e.touches[0];
+        var mouseEvent = new MouseEvent("mousedown", {
+          clientX: touch.clientX,
+          clientY: touch.clientY
+        });
+        document.dispatchEvent(mouseEvent);
+      },
+      false
+    );
+    document.addEventListener(
+      "touchend",
+      function(e) {
+        if (e.target == self.canvas) {
+          e.preventDefault();
+        }
+
+        var mouseEvent = new MouseEvent("mouseup", {});
+        document.dispatchEvent(mouseEvent);
+      },
+      false
+    );
+    document.addEventListener(
+      "touchmove",
+      function(e) {
+        if (e.target == self.canvas) {
+          e.preventDefault();
+        }
+
+        var touch = e.touches[0];
+        var mouseEvent = new MouseEvent("mousemove", {
+          clientX: touch.clientX,
+          clientY: touch.clientY
+        });
+        document.dispatchEvent(mouseEvent);
+      },
+      false
+    );
+
     document.addEventListener("mousedown", function(e) {
       self.myDown(e);
     });
@@ -334,6 +403,31 @@ export class DrawingContext {
       offsetX,
       offsetY
     );
+  }
+
+  getTouchPos(touchEvent: TouchEvent) {
+    // var rect = canvasDom.getBoundingClientRect();
+    let element: any = this.canvas,
+      offsetX = 0,
+      offsetY = 0;
+
+    if (element.offsetParent) {
+      do {
+        offsetX += element.offsetLeft;
+        offsetY += element.offsetTop;
+      } while ((element = element.offsetParent));
+    }
+
+    // Add padding and border style widths to offset
+    offsetX += this.stylePaddingLeft;
+    offsetY += this.stylePaddingTop;
+
+    offsetX += this.styleBorderLeft;
+    offsetY += this.styleBorderTop;
+    return {
+      x: touchEvent.touches[0].clientX - offsetX,
+      y: touchEvent.touches[0].clientY - offsetY
+    };
   }
 
   // Main draw loop.
