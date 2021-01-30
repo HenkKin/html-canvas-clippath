@@ -390,8 +390,8 @@ export class DrawingContext {
 
     if(e instanceof TouchEvent){
       this.mousePoint = new Point(
-        e.touches[0].pageX - offsetX,
-        e.touches[0].pageY - offsetY,
+        e.touches[0].clientX - offsetX,
+        e.touches[0].clientY - offsetY,
         offsetX,
         offsetY
       );
