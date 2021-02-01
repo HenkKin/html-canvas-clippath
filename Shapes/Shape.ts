@@ -22,6 +22,7 @@ export abstract class Shape {
   }
   abstract get rotationHandleX(): number;
   abstract get rotationHandleY(): number;
+  rotationHandlePath: Path2D = null;
   mySelColor = "#CC0000";
   mySelWidth = 1;
   mySelBoxColor = "darkred";
@@ -134,14 +135,15 @@ export abstract class Shape {
       renderer.save();
       this.rotateCanvas(renderer);
 
-      renderer.fillStyle = this.mySelBoxColor;
-      this.drawCircel(renderer, this.centerX, this.centerY, 20, "silver");
+
       // this.drawPoint(renderer, this.centerX, this.centerY, 2,"black");
       for (let i = 0; i < this.selectionHandles.length; i++) {
         const cur = this.selectionHandles[i];
 
-        if (i === 1) {
-          this.drawPoint(
+        // pas als er minimaal 3 handles zijn een rotation handle tekenen
+        if (i === 2) {
+          this.drawCircel(renderer, this.centerX, this.centerY, 20, "silver");
+          this.rotationHandlePath = this.drawPoint(
             renderer,
             this.rotationHandleX,
             this.rotationHandleY,

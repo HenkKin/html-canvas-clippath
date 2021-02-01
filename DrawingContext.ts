@@ -604,6 +604,12 @@ export class DrawingContext {
       return;
     }
 
+    if(this.activeShape !== null){
+      this.activeShape.selectionHandles.forEach(handle => {
+
+      });
+    }
+
     let isHandled = false;
     if (this.activeShape !== null) {
       isHandled = this.activeShape.mousedownShape(
